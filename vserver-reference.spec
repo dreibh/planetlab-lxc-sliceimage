@@ -102,11 +102,11 @@ EOF
 
 # Prevent all locales from being installed in reference image
 mkdir -p %{installroot}/etc/rpm
-cat > %{installroot}/etc/rpm/macros <<EOF
-%_install_langs en_US:en
-%_excludedocs 1
-%__file_context_path /dev/null
-EOF
+(
+echo "%_install_langs en_US:en"
+echo "%_excludedocs 1"
+echo "%__file_context_path /dev/null"
+) > %{installroot}/etc/rpm/macros
 
 # Initialize RPM database in reference image
 mkdir -p %{installroot}/var/lib/rpm
