@@ -108,7 +108,7 @@ rpm --root %{installroot} --initdb
 # XXX Get yum.conf from PlanetLabConf
 
 # Install RPMs in reference image
-yum \
+yum -c ./yum.conf \
 %{?sslcertdir:--sslcertdir=%{sslcertdir}} \
 --installroot=%{installroot} \
 -y groupinstall VServer
