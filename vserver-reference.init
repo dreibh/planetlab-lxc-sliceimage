@@ -9,7 +9,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.2 2004/10/14 18:37:40 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.3 2004/10/20 19:55:41 mlhuang Exp $
 #
 
 case "$1" in
@@ -88,6 +88,7 @@ cat > $VROOT/etc/fstab <<EOF
 # This fake fstab exists only to please df and linuxconf.
 /dev/hdv1	/	ext2	defaults	1 1
 EOF
+cp $VROOT/etc/fstab $VROOT/etc/mtab
 
 # Prevent all locales from being installed in reference image
 mkdir -p $VROOT/etc/rpm
