@@ -149,6 +149,22 @@ fi
 chattr -R -i $RPM_BUILD_ROOT
 rm -rf $RPM_BUILD_ROOT
 
+# Make sure the original user can remove the generated files
+if [ -n "$SUDO_UID" ] ; then
+    chown -R $SUDO_UID.$SUDO_GID .
+    for i in \
+	%{_topdir}/BUILD \
+	%{_topdir}/RPMS/noarch/%{name}-%{version}-%{release}.noarch.rpm \
+	%{_topdir}/RPMS/noarch \
+	%{_topdir}/RPMS/ \
+	%{_topdir}/SRPMS/%{name}-%{version}-%{release}.src.rpm \
+	%{_topdir}/SRPMS/ ; do
+      if [ -e $i ] ; then
+	  chown $SUDO_UID.$SUDO_GID $i
+      fi
+    done
+fi
+
 %post
 # Copy configuration files from host to reference image
 for file in /etc/hosts /etc/resolv.conf /etc/yum.conf ; do
