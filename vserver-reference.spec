@@ -102,11 +102,11 @@ EOF
 
 # Prevent all locales from being installed in reference image
 mkdir -p %{installroot}/etc/rpm
-(
-echo "%_install_langs en_US:en"
-echo "%_excludedocs 1"
-echo "%__file_context_path /dev/null"
-) > %{installroot}/etc/rpm/macros
+cat > %{installroot}/etc/rpm/macros <<EOF
+%%_install_langs en_US:en
+%%_excludedocs 1
+%%__file_context_path /dev/null
+EOF
 
 # Initialize RPM database in reference image
 mkdir -p %{installroot}/var/lib/rpm
@@ -168,6 +168,12 @@ if [ -n "$SUDO_UID" ] ; then
 	  chown $SUDO_UID.$SUDO_GID $i
       fi
     done
+fi
+
+%pre
+# 1 = install, 2 = upgrade/reinstall
+if [ $1 -eq 2 ] ; then
+    chattr -R -i %{vrefdir}
 fi
 
 %post
