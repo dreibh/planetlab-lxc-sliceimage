@@ -9,7 +9,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.6 2004/11/17 22:54:19 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.7 2004/11/29 20:19:13 mlhuang Exp $
 #
 
 case "$1" in
@@ -67,6 +67,7 @@ MAKEDEV ()
     mknod -m 644 $VROOT/dev/urandom c 1 9
     mknod -m 666 $VROOT/dev/tty c 5 0
     mknod -m 666 $VROOT/dev/ptmx c 5 2
+    ln -nsf ../proc/self/fd /dev/fd
     touch $VROOT/dev/hdv1
 }
 
