@@ -9,7 +9,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.5 2004/11/17 22:50:04 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.6 2004/11/17 22:54:19 mlhuang Exp $
 #
 
 case "$1" in
@@ -41,7 +41,7 @@ exec &>/var/log/vserver-reference.log
 # Make /vservers
 mkdir -p $VROOTDIR
 chmod 000 $VROOTDIR
-chattr +t $VROOTDIR
+$PKGLIBDIR/setattr --barrier $VROOTDIR
 
 # Build image in /vservers/.vtmp
 mkdir -p $VROOTDIR/.vtmp
@@ -49,13 +49,12 @@ VROOT=$(mktemp -d $VROOTDIR/.vtmp/vserver-reference.XXXXXX)
 
 # Make /vservers/.vtmp/vserver-reference.XXXXXX
 mkdir -p $VROOT
-chattr -t $VROOT
 chmod 755 $VROOT
 
 echo -n $"Building VServer reference: " >&3 2>&4
 
 # Clean up before exiting if anything goes wrong
-trap "umount $VROOT/proc ; umount $VROOT/dev/pts ; chattr -R -i $VROOT ; rm -rf $VROOT ; failure >&3 2>&4 ; echo >&3 2>&4 ; exit 255" ERR
+trap "umount $VROOT/proc ; umount $VROOT/dev/pts ; rm -rf $VROOT ; failure >&3 2>&4 ; echo >&3 2>&4 ; exit 255" ERR
 
 MAKEDEV ()
 {
