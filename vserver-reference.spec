@@ -40,6 +40,9 @@ fi
 %build
 
 %install
+# Running as root
+export PATH="$PATH:/sbin:/usr/sbin"
+
 # Clean up
 if grep -q %{installroot}/proc /proc/mounts ; then
     umount %{installroot}/proc
@@ -131,6 +134,9 @@ if grep -q %{installroot}/dev/pts /proc/mounts ; then
 fi
 
 %clean
+# Running as root
+export PATH="$PATH:/sbin:/usr/sbin"
+
 # Clean up
 if grep -q %{installroot}/proc /proc/mounts ; then
     umount %{installroot}/proc
