@@ -20,6 +20,8 @@ Requires: util-vserver
 AutoReqProv: no
 BuildRequires: e2fsprogs, yum
 
+%define debug_package %{nil}
+
 %description
 This package creates the virtual server (VServer) reference image used
 as the installation base for new PlanetLab slivers.
