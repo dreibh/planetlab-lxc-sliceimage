@@ -1,6 +1,6 @@
 %define name vserver-reference
 %define version 3.0
-%define release 2.planetlab%{?date:.%{date}}
+%define release 3.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
