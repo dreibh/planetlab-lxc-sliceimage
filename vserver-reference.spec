@@ -119,6 +119,9 @@ yum -c ./yum.conf \
 --installroot=%{installroot} \
 -y groupinstall VServer
 
+# Freshen any new RPMs
+find %{_topdir}/RPMS -type f | xargs rpm --root %{installroot} -F
+
 # Clean up /dev in reference image
 MAKEDEV
 
