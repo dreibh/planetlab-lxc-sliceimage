@@ -2,14 +2,14 @@
 #
 # vserver-reference	Builds VServer reference
 #
-# Load before pl_conf, pl_nm, and vservers
-# chkconfig: 3 70 80
+# Load before pl_conf, pl_nm, vcached, and vservers
+# chkconfig: 3 60 80
 # description: Builds VServer reference image
 #
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004 The Trustees of Princeton University
 #
-# $Id: vnet.init,v 1.8 2004/10/11 04:28:20 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.1 2004/10/14 18:25:05 mlhuang Exp $
 #
 
 case "$1" in
