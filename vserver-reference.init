@@ -9,7 +9,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.3 2004/10/20 19:55:41 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.4 2004/10/29 20:29:13 mlhuang Exp $
 #
 
 case "$1" in
@@ -110,6 +110,9 @@ fi
 
 # Install RPMs in reference image
 yum $SSLCERTDIR --installroot=$VROOT -y groupinstall VServer
+
+# Remove stale RPM locks
+rm -f $VROOT/var/lib/rpm/__db*
 
 # Clean up /dev in reference image
 umount $VROOT/dev/pts
