@@ -1,6 +1,6 @@
 %define name vserver-reference
 %define version 3.0
-%define release 3.planetlab%{?date:.%{date}}
+%define release 4.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -43,6 +43,11 @@ chkconfig --add %{name}
 chkconfig %{name} on
 
 %changelog
+* Mon Nov 15 2004 Mark Huang <mlhuang@cs.princeton.edu> 3.0-4.planetlab
+- bump release to install Fedora Core 2 updates as of Tue Nov  9 2004
+- PL3017 fix: rebuild vserver-reference image in case it was built
+  with i386 glibc
+
 * Sun Oct 10 2004 Mark Huang <mlhuang@cs.princeton.edu> 3.0-3.planetlab
 - dynamically install reference image at init time
 
