@@ -104,6 +104,7 @@ EOF
 mkdir -p %{installroot}/etc/rpm
 cat > %{installroot}/etc/rpm/macros <<EOF
 %_install_langs en_US:en
+%_excludedocs 1
 EOF
 
 # Initialize RPM database in reference image
