@@ -9,7 +9,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.1 2004/10/14 18:25:05 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.2 2004/10/14 18:37:40 mlhuang Exp $
 #
 
 case "$1" in
@@ -30,6 +30,14 @@ esac
 # VServer definitions
 . /usr/lib/util-vserver/util-vserver-vars
 
+# Save stdout and stderr
+exec 3>&1
+exec 4>&2
+
+# Redirect stdout and stderr to a log file
+exec 2>&1
+exec &>/var/log/vserver-reference.log
+
 # Make /vservers
 mkdir -p $VROOTDIR
 chmod 000 $VROOTDIR
@@ -44,10 +52,10 @@ mkdir -p $VROOT
 chattr -t $VROOT
 chmod 755 $VROOT
 
+echo -n $"Building VServer reference: " >&3 2>&4
+
 # Clean up before exiting if anything goes wrong
-set -e
-echo -n $"Building VServer reference: "
-trap "umount $VROOT/proc ; umount $VROOT/dev/pts ; chattr -R -i $VROOT ; rm -rf $VROOT ; failure ; echo ; exit 255" EXIT
+trap "umount $VROOT/proc ; umount $VROOT/dev/pts ; chattr -R -i $VROOT ; rm -rf $VROOT ; failure >&3 2>&4 ; echo >&3 2>&4 ; exit 255" ERR
 
 MAKEDEV ()
 {
@@ -96,11 +104,11 @@ rpm --root $VROOT --initdb
 # Update certificates
 if [ -d /mnt/cdrom/bootme/cacert ] ; then
     SSLCERTDIR="--sslcertdir /mnt/cdrom/bootme/cacert"
-    find /mnt/cdrom/bootme/cacert | cpio -p -d $VROOT >/dev/null 2>&1
+    find /mnt/cdrom/bootme/cacert | cpio -p -d $VROOT
 fi
 
 # Install RPMs in reference image
-yum $SSLCERTDIR --installroot=$VROOT -e 0 -d 0 -y groupinstall VServer >/dev/null 2>&1
+yum $SSLCERTDIR --installroot=$VROOT -y groupinstall VServer
 
 # Clean up /dev in reference image
 umount $VROOT/dev/pts
@@ -112,15 +120,12 @@ chroot $VROOT /bin/sh -c "chkconfig --list | awk '{ print \$1 }' | xargs -i chkc
 # Copy configuration files from host to reference image
 for file in /etc/hosts /etc/resolv.conf /etc/yum.conf ; do
     if [ -f $file ] ; then
-	echo $file | cpio -p -d -u $VROOT >/dev/null 2>&1
+	echo $file | cpio -p -d -u $VROOT
     fi
 done
 
 # Clean up
 umount $VROOT/proc
-
-# Reset trap
-trap - EXIT
 
 # Swap them when complete
 mv $VROOT $VROOTDIR
@@ -133,9 +138,6 @@ mv $VROOTDIR/$(basename $VROOT) $VROOTDIR/vserver-reference
 # Disable again
 chkconfig vserver-reference off
 
-# Reset trap
-trap - EXIT
-
-success
-echo
+success >&3 2>&4
+echo >&3 2>&4
 exit 0
