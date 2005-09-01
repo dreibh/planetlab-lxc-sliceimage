@@ -7,7 +7,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2005 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.10 2005/09/01 17:17:14 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.11 2005/09/01 17:20:03 mlhuang Exp $
 #
 
 YUM_CONF="http://www.planet-lab.org/PlanetLabConf/v3-yum.conf"
@@ -102,7 +102,7 @@ umount $VROOT/dev/pts
 MAKEDEV
 
 # Disable all services in reference image
-/usr/sbin/chroot $VROOT /bin/sh -c "chkconfig --list | awk '{ print \$1 }' | xargs -i chkconfig {} off"
+/usr/sbin/chroot $VROOT /bin/sh -c "/sbin/chkconfig --list | awk '{ print \$1 }' | xargs -i chkconfig {} off"
 
 # Clean up
 umount $VROOT/proc
