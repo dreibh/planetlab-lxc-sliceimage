@@ -34,6 +34,11 @@ RPM_BUILD_DIR=$RPM_BUILD_DIR ./%{name}.init
 rm -rf $RPM_BUILD_ROOT
 find vservers/vserver-reference | cpio -p -d -u $RPM_BUILD_ROOT/
 
+# If run under sudo, allow user to delete the build directory
+if [ -n "$SUDO_USER" ] ; then
+    chown -R $SUDO_USER .
+fi
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
