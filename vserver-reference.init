@@ -7,7 +7,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2005 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.8 2005/03/31 22:34:42 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.9 2005/09/01 17:08:50 mlhuang Exp $
 #
 
 YUM_CONF="http://www.planet-lab.org/PlanetLabConf/v3-yum.conf"
@@ -48,7 +48,7 @@ mkdir -p $VROOT/proc
 mount -t proc none $VROOT/proc
 
 # Clean up before exiting if anything goes wrong
-trap "umount $VROOT/proc ; umount $VROOT/dev/pts" ERR
+trap "umount $VROOT/proc ; umount $VROOT/dev/pts ; exit 255" ERR
 
 # Create a dummy /etc/fstab in reference image
 mkdir -p $VROOT/etc
