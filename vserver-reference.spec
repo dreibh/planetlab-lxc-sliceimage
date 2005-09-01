@@ -1,3 +1,4 @@
+
 %define name vserver-reference
 %define version 3.1
 %define release 1.planetlab%{?date:.%{date}}
@@ -105,6 +106,9 @@ install -D -m 644 $MA_BOOT_SERVER_CACERT $VROOT/$MA_BOOT_SERVER_CACERT
 # Also install in /mnt/cdrom/bootme for backward compatibility
 install -D -m 644 $MA_BOOT_SERVER_CACERT $VROOT/mnt/cdrom/bootme/cacert/$MA_BOOT_SERVER/cacert.pem
 echo $MA_BOOT_SERVER > $VROOT/mnt/cdrom/bootme/BOOTSERVER
+
+# Update packages and populate header cache
+chroot $VROOT yum --sslcertdir /mnt/cdrom/bootme/cacert -y update
 
 # Allow vcached to run again
 rm -f %{vcached_pid}
