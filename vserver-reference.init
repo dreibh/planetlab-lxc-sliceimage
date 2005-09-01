@@ -1,60 +1,20 @@
 #!/bin/bash
 #
-# vserver-reference	Builds VServer reference
-#
-# Load before pl_conf, pl_nm, vcached, and vservers
-# chkconfig: 3 60 80
-# description: Builds VServer reference image
+# Builds VServer reference image. Requires the web and boot servers to
+# be up, which complicates bootstrap. Alternatively, we could require
+# the build server to host a local yum repository.
 #
 # Mark Huang <mlhuang@cs.princeton.edu>
-# Copyright (C) 2004 The Trustees of Princeton University
+# Copyright (C) 2004-2005 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.7 2004/11/29 20:19:13 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.8 2005/03/31 22:34:42 mlhuang Exp $
 #
 
-case "$1" in
-    start|restart|reload)
-	;;
-    stop|status)
-	exit 0
-	;;
-    *)
-	echo $"Usage: $0 {start|stop|restart|status}"
-	exit 1
-	;;
-esac
-
-# Source function library.
-. /etc/init.d/functions
-
-# VServer definitions
-. /usr/lib/util-vserver/util-vserver-vars
-
-# Save stdout and stderr
-exec 3>&1
-exec 4>&2
-
-# Redirect stdout and stderr to a log file
-exec 2>&1
-exec &>/var/log/vserver-reference.log
+YUM_CONF="http://www.planet-lab.org/PlanetLabConf/v3-yum.conf"
 
 # Make /vservers
-mkdir -p $VROOTDIR
-chmod 000 $VROOTDIR
-$PKGLIBDIR/setattr --barrier $VROOTDIR
-
-# Build image in /vservers/.vtmp
-mkdir -p $VROOTDIR/.vtmp
-VROOT=$(mktemp -d $VROOTDIR/.vtmp/vserver-reference.XXXXXX)
-
-# Make /vservers/.vtmp/vserver-reference.XXXXXX
-mkdir -p $VROOT
-chmod 755 $VROOT
-
-echo -n $"Building VServer reference: " >&3 2>&4
-
-# Clean up before exiting if anything goes wrong
-trap "umount $VROOT/proc ; umount $VROOT/dev/pts ; rm -rf $VROOT ; failure >&3 2>&4 ; echo >&3 2>&4 ; exit 255" ERR
+VROOT=$PWD/vservers/vserver-reference
+install -d -m 755 $VROOT
 
 MAKEDEV ()
 {
@@ -67,8 +27,13 @@ MAKEDEV ()
     mknod -m 644 $VROOT/dev/urandom c 1 9
     mknod -m 666 $VROOT/dev/tty c 5 0
     mknod -m 666 $VROOT/dev/ptmx c 5 2
+    # For bash command substitution
     ln -nsf ../proc/self/fd /dev/fd
+    # For df and linuxconf
     touch $VROOT/dev/hdv1
+    # For TUN/TAP
+    mkdir -p $VROOT/dev/net
+    mknod -m 600 $VROOT/dev/net/tun c 10 200
 }
 
 # Initialize /dev in reference image
@@ -81,6 +46,9 @@ mount -t devpts none $VROOT/dev/pts
 # Mount /proc in reference image
 mkdir -p $VROOT/proc
 mount -t proc none $VROOT/proc
+
+# Clean up before exiting if anything goes wrong
+trap "umount $VROOT/proc ; umount $VROOT/dev/pts" ERR
 
 # Create a dummy /etc/fstab in reference image
 mkdir -p $VROOT/etc
@@ -98,18 +66,36 @@ cat > $VROOT/etc/rpm/macros <<EOF
 %__file_context_path /dev/null
 EOF
 
+# This tells the Boot Manager that it is okay to update
+# /etc/resolv.conf and /etc/hosts whenever the network configuration
+# changes. Users are free to delete this file.
+touch $VROOT/etc/AUTO_UPDATE_NET_FILES
+
+# Trick rpm and yum, who read the real root /etc/rpm/macros file
+# rather than the one installed in the reference image, despite what
+# you might expect the --root and --installroot options to mean. Both
+# programs always read $HOME/.rpmmacros.
+export HOME=$PWD
+ln -sf $VROOT/etc/rpm/macros $PWD/.rpmmacros
+
 # Initialize RPM database in reference image
 mkdir -p $VROOT/var/lib/rpm
 rpm --root $VROOT --initdb
 
-# Update certificates
-if [ -d /mnt/cdrom/bootme/cacert ] ; then
-    SSLCERTDIR="--sslcertdir /mnt/cdrom/bootme/cacert"
-    find /mnt/cdrom/bootme/cacert | cpio -p -d $VROOT
+# Go, baby, go
+yum -c $YUM_CONF --installroot=$VROOT -y groupinstall VServer
+
+# Freshen the RPM set with any just built. This does not help when a
+# completely new PlanetLab package must be installed in the reference
+# image. To work around this limitation, introduce the new package in
+# one release, then include it in the VServer yumgroup in the next.
+FRESHEN=$RPM_BUILD_DIR/../RPMS/*/*.rpm
+if [ -n "$FRESHEN" ] ; then
+    rpm --root $VROOT --freshen --verbose $FRESHEN
 fi
 
-# Install RPMs in reference image
-yum $SSLCERTDIR --installroot=$VROOT -y groupinstall VServer
+# Remove stale RPM locks
+rm -f $VROOT/var/lib/rpm/__db*
 
 # Clean up /dev in reference image
 umount $VROOT/dev/pts
@@ -118,27 +104,7 @@ MAKEDEV
 # Disable all services in reference image
 chroot $VROOT /bin/sh -c "chkconfig --list | awk '{ print \$1 }' | xargs -i chkconfig {} off"
 
-# Copy configuration files from host to reference image
-for file in /etc/hosts /etc/resolv.conf /etc/yum.conf ; do
-    if [ -f $file ] ; then
-	echo $file | cpio -p -d -u $VROOT
-    fi
-done
-
 # Clean up
 umount $VROOT/proc
 
-# Swap them when complete
-mv $VROOT $VROOTDIR
-if [ -d $VROOTDIR/vserver-reference ] ; then
-    mv $VROOTDIR/vserver-reference $VROOT
-    # Let vcached clean it up later
-fi
-mv $VROOTDIR/$(basename $VROOT) $VROOTDIR/vserver-reference
-
-# Disable again
-chkconfig vserver-reference off
-
-success >&3 2>&4
-echo >&3 2>&4
 exit 0
