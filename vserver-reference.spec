@@ -42,14 +42,38 @@ fi
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+# If run under sudo, allow user to delete the built RPM
+if [ -n "$SUDO_USER" ] ; then
+    chown $SUDO_USER %{_rpmdir}/%{_arch}/%{name}-%{version}-%{release}.%{_arch}.rpm
+fi
+
 %files
 %defattr(-,root,root)
 /vservers/vserver-reference
+
+%define vcached_pid /var/run/vcached.pid
+
+%pre
+# Stop vcached
+if [ -r %{vcached_pid} ] ; then
+    kill $(cat %{vcached_pid})
+fi
+touch %{vcached_pid}
+
+# vcached will clean up .vtmp later
+mkdir -p /vservers/.vtmp
+if [ -d /vservers/vserver-reference ] ; then
+    mv /vservers/vserver-reference /vservers/.vtmp/vserver-reference.$RANDOM
+fi
+if [ -d /vservers/.vcache ] ; then
+    mv /vservers/.vcache /vservers/.vtmp/.vcache.$RANDOM
+fi
 
 %post
 VROOT=/vservers/vserver-reference
 
 # Make sure the barrier bit is set
+chmod 0000 /vservers
 setattr --barrier /vservers
 
 # Copy configuration files from host to reference image
@@ -67,6 +91,7 @@ elif [ -d /mnt/cdrom/bootme/cacert ] ; then
     MA_NAME="PlanetLab Central"
     MA_BOOT_SERVER=$(head -1 /mnt/cdrom/bootme/BOOTSERVER)
     MA_BOOT_SERVER_CACERT=/mnt/cdrom/bootme/cacert/$MA_BOOT_SERVER/cacert.pem
+    mkdir -p $VROOT/etc/planetlab
     cat > $VROOT/etc/planetlab/primary_ma <<EOF
 MA_NAME="$MA_NAME"
 MA_BOOT_SERVER="$MA_BOOT_SERVER"
@@ -80,6 +105,9 @@ install -D -m 644 $MA_BOOT_SERVER_CACERT $VROOT/$MA_BOOT_SERVER_CACERT
 # Also install in /mnt/cdrom/bootme for backward compatibility
 install -D -m 644 $MA_BOOT_SERVER_CACERT $VROOT/mnt/cdrom/bootme/cacert/$MA_BOOT_SERVER/cacert.pem
 echo $MA_BOOT_SERVER > $VROOT/mnt/cdrom/bootme/BOOTSERVER
+
+# Allow vcached to run again
+rm -f %{vcached_pid}
 
 %changelog
 * Tue Sep  1 2005 Mark Huang <mlhuang@cs.princeton.edu> 3.1-1.planetlab
