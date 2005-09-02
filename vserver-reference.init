@@ -8,11 +8,13 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2005 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.15 2005/09/02 01:43:49 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.16 2005/09/02 15:21:00 mlhuang Exp $
 #
 
-# Get the URL for the production /etc/yum.conf file
-YUM_CONF=http://www.planet-lab.org/$(curl -q --form node_id=0 --form file=/etc/yum.conf https://www.planet-lab.org/db/plnodeconf/getsinglefile.php)
+# Get the URL for the production /etc/yum.conf file. XXX When MAs
+# begin deploying their own boot servers and/or code, this will have
+# to change.
+YUM_CONF=http://boot.planet-lab.org/$(curl --silent --insecure --form node_id=0 --form file=/etc/yum.conf https://boot.planet-lab.org/db/plnodeconf/getsinglefile.php)
 
 # Make /vservers
 VROOT=$PWD/vservers/vserver-reference
@@ -91,9 +93,8 @@ yum -c $YUM_CONF --installroot=$VROOT -y groupinstall VServer
 # completely new PlanetLab package must be installed in the reference
 # image. To work around this limitation, introduce the new package in
 # one release, then include it in the VServer yumgroup in the next.
-FRESHEN=$RPM_BUILD_DIR/../RPMS/*/*.rpm
-if [ -n "$FRESHEN" ] ; then
-    rpm --root $VROOT --freshen --verbose $FRESHEN
+if [ -d $RPM_BUILD_DIR/../RPMS ] ; then
+    rpm --root $VROOT --freshen --verbose $RPM_BUILD_DIR/../RPMS/*/*.rpm
 fi
 
 # Remove stale RPM locks
