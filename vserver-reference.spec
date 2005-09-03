@@ -1,4 +1,3 @@
-
 %define name vserver-reference
 %define version 3.1
 %define release 1.planetlab%{?date:.%{date}}
@@ -29,10 +28,11 @@ as the installation base for new PlanetLab slivers.
 %setup -q
 
 %build
-RPM_BUILD_DIR=$RPM_BUILD_DIR ./%{name}.init
+RPM_BUILD_DIR=$RPM_BUILD_DIR ./build.sh
 
 %install
 rm -rf $RPM_BUILD_ROOT
+install -D -m 755 %{name}.init $RPM_BUILD_ROOT/%{_initrddir}/%{name}
 find vservers/vserver-reference | cpio -p -d -u $RPM_BUILD_ROOT/
 
 # If run under sudo, allow user to delete the build directory
@@ -50,6 +50,7 @@ fi
 
 %files
 %defattr(-,root,root)
+%{_initrddir}/%{name}
 /vservers/vserver-reference
 
 %define vcached_pid /var/run/vcached.pid
@@ -70,48 +71,13 @@ if [ -d /vservers/.vcache ] ; then
     mv /vservers/.vcache /vservers/.vtmp/.vcache.$RANDOM
 fi
 
-%post
-VROOT=/vservers/vserver-reference
-
-# Make sure the barrier bit is set
-chmod 0000 /vservers
-setattr --barrier /vservers
-
-# Copy configuration files from host to reference image
-for file in /etc/hosts /etc/resolv.conf /etc/yum.conf ; do
-    if [ -f $file ] ; then
-	echo $file | cpio -p -d -u $VROOT
-    fi
-done
-
-# Install and parse Management Authority (MA) configuration
-if [ -r /etc/planetlab/primary_ma ] ; then
-    . /etc/planetlab/primary_ma
-    install -D -m 644 /etc/planetlab/primary_ma $VROOT/etc/planetlab/primary_ma
-elif [ -d /mnt/cdrom/bootme/cacert ] ; then
-    MA_NAME="PlanetLab Central"
-    MA_BOOT_SERVER=$(head -1 /mnt/cdrom/bootme/BOOTSERVER)
-    MA_BOOT_SERVER_CACERT=/mnt/cdrom/bootme/cacert/$MA_BOOT_SERVER/cacert.pem
-    mkdir -p $VROOT/etc/planetlab
-    cat > $VROOT/etc/planetlab/primary_ma <<EOF
-MA_NAME="$MA_NAME"
-MA_BOOT_SERVER="$MA_BOOT_SERVER"
-MA_BOOT_SERVER_CACERT="$MA_BOOT_SERVER_CACERT"
-EOF
-fi
-
-# Install boot server certificate
-install -D -m 644 $MA_BOOT_SERVER_CACERT $VROOT/$MA_BOOT_SERVER_CACERT
-
-# Also install in /mnt/cdrom/bootme for backward compatibility
-install -D -m 644 $MA_BOOT_SERVER_CACERT $VROOT/mnt/cdrom/bootme/cacert/$MA_BOOT_SERVER/cacert.pem
-echo $MA_BOOT_SERVER > $VROOT/mnt/cdrom/bootme/BOOTSERVER
-
-# Update packages and populate header cache
-chroot $VROOT yum --sslcertdir /mnt/cdrom/bootme/cacert -y update
-
 # Allow vcached to run again
 rm -f %{vcached_pid}
+
+%post
+chkconfig --add %{name}
+chkconfig %{name} on
+[ "$PL_BOOTCD" = "1" ] || service vserver-reference start
 
 %changelog
 * Tue Sep  1 2005 Mark Huang <mlhuang@cs.princeton.edu> 3.1-1.planetlab
