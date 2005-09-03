@@ -1,113 +1,83 @@
 #!/bin/bash
 #
-# Builds VServer reference image. Requires the web and boot servers to
-# be up, which complicates bootstrap. Alternatively, we could require
-# the build server to host a local yum repository. Already, it is
-# required to run the same major version of yum as the nodes.
+# vserver-reference	Updates VServer reference
+#
+# Load before pl_conf, pl_nm, vcached, and vservers
+# chkconfig: 3 60 80
+# description: Builds VServer reference image
 #
 # Mark Huang <mlhuang@cs.princeton.edu>
-# Copyright (C) 2004-2005 The Trustees of Princeton University
+# Copyright (C) 2004 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.16 2005/09/02 15:21:00 mlhuang Exp $
+# $Id: vserver-reference.init,v 1.17 2005/09/02 19:46:37 mlhuang Exp $
 #
 
-# Get the URL for the production /etc/yum.conf file. XXX When MAs
-# begin deploying their own boot servers and/or code, this will have
-# to change.
-YUM_CONF=http://boot.planet-lab.org/$(curl --silent --insecure --form node_id=0 --form file=/etc/yum.conf https://boot.planet-lab.org/db/plnodeconf/getsinglefile.php)
+case "$1" in
+    start|restart|reload)
+	;;
+    stop|status)
+	exit 0
+	;;
+    *)
+	echo $"Usage: $0 {start|stop|restart|status}"
+	exit 1
+	;;
+esac
 
-# Make /vservers
-VROOT=$PWD/vservers/vserver-reference
-install -d -m 755 $VROOT
+# Source function library.
+. /etc/init.d/functions
 
-MAKEDEV ()
-{
-    rm -rf $VROOT/dev
-    mkdir -p $VROOT/dev
-    mknod -m 666 $VROOT/dev/null c 1 3
-    mknod -m 666 $VROOT/dev/zero c 1 5
-    mknod -m 666 $VROOT/dev/full c 1 7
-    mknod -m 644 $VROOT/dev/random c 1 8
-    mknod -m 644 $VROOT/dev/urandom c 1 9
-    mknod -m 666 $VROOT/dev/tty c 5 0
-    mknod -m 666 $VROOT/dev/ptmx c 5 2
-    # For bash command substitution
-    ln -nsf ../proc/self/fd /dev/fd
-    # For df and linuxconf
-    touch $VROOT/dev/hdv1
-    # For TUN/TAP
-    mkdir -p $VROOT/dev/net
-    mknod -m 600 $VROOT/dev/net/tun c 10 200
-}
+# VServer definitions
+. /usr/lib/util-vserver/util-vserver-vars
 
-# Initialize /dev in reference image
-MAKEDEV
+# Save stdout and stderr
+exec 3>&1
+exec 4>&2
 
-# Mount /dev/pts in reference image
-mkdir -p $VROOT/dev/pts
-mount -t devpts none $VROOT/dev/pts
+# Redirect stdout and stderr to a log file
+exec 2>&1
+exec &>/var/log/vserver-reference.log
 
-# Mount /proc in reference image
-mkdir -p $VROOT/proc
-mount -t proc none $VROOT/proc
+echo -n $"Updating VServer reference: " >&3 2>&4
 
-# Clean up before exiting if anything goes wrong
-trap "umount $VROOT/proc ; umount $VROOT/dev/pts ; exit 255" ERR
+VROOT=$__DEFAULT_VSERVERDIR/vserver-reference
 
-# Create a dummy /etc/fstab in reference image
-mkdir -p $VROOT/etc
-cat > $VROOT/etc/fstab <<EOF
-# This fake fstab exists only to please df and linuxconf.
-/dev/hdv1	/	ext2	defaults	1 1
+# Make sure the barrier bit is set
+chmod 0000 /vservers
+setattr --barrier /vservers
+
+# Copy configuration files from host to reference image
+for file in /etc/hosts /etc/resolv.conf /etc/yum.conf ; do
+    if [ -r $file ] ; then
+	echo $file | cpio -p -d -u $VROOT 2>/dev/null
+    fi
+done
+
+# Install and parse Management Authority (MA) configuration
+if [ -r /etc/planetlab/primary_ma ] ; then
+    . /etc/planetlab/primary_ma
+    install -D -m 644 /etc/planetlab/primary_ma $VROOT/etc/planetlab/primary_ma
+elif [ -d /mnt/cdrom/bootme/cacert ] ; then
+    MA_NAME="PlanetLab Central"
+    MA_BOOT_SERVER=$(head -1 /mnt/cdrom/bootme/BOOTSERVER)
+    MA_BOOT_SERVER_CACERT=/mnt/cdrom/bootme/cacert/$MA_BOOT_SERVER/cacert.pem
+    mkdir -p $VROOT/etc/planetlab
+    cat > $VROOT/etc/planetlab/primary_ma <<EOF
+MA_NAME="$MA_NAME"
+MA_BOOT_SERVER="$MA_BOOT_SERVER"
+MA_BOOT_SERVER_CACERT="$MA_BOOT_SERVER_CACERT"
 EOF
-cp $VROOT/etc/fstab $VROOT/etc/mtab
-
-# Prevent all locales from being installed in reference image
-mkdir -p $VROOT/etc/rpm
-cat > $VROOT/etc/rpm/macros <<EOF
-%_install_langs en_US:en
-%_excludedocs 1
-%__file_context_path /dev/null
-EOF
-
-# This tells the Boot Manager that it is okay to update
-# /etc/resolv.conf and /etc/hosts whenever the network configuration
-# changes. Users are free to delete this file.
-touch $VROOT/etc/AUTO_UPDATE_NET_FILES
-
-# Trick rpm and yum, who read the real root /etc/rpm/macros file
-# rather than the one installed in the reference image, despite what
-# you might expect the --root and --installroot options to mean. Both
-# programs always read $HOME/.rpmmacros.
-export HOME=$PWD
-ln -sf $VROOT/etc/rpm/macros $PWD/.rpmmacros
-
-# Initialize RPM database in reference image
-mkdir -p $VROOT/var/lib/rpm
-rpm --root $VROOT --initdb
-
-# Go, baby, go
-yum -c $YUM_CONF --installroot=$VROOT -y groupinstall VServer
-
-# Freshen the RPM set with any just built. This does not help when a
-# completely new PlanetLab package must be installed in the reference
-# image. To work around this limitation, introduce the new package in
-# one release, then include it in the VServer yumgroup in the next.
-if [ -d $RPM_BUILD_DIR/../RPMS ] ; then
-    rpm --root $VROOT --freshen --verbose $RPM_BUILD_DIR/../RPMS/*/*.rpm
 fi
 
-# Remove stale RPM locks
-rm -f $VROOT/var/lib/rpm/__db*
+if [ -r "$MA_BOOT_SERVER_CACERT" ] ; then
+    # Install boot server certificate
+    install -D -m 644 $MA_BOOT_SERVER_CACERT $VROOT/$MA_BOOT_SERVER_CACERT
 
-# Clean up /dev in reference image
-umount $VROOT/dev/pts
-MAKEDEV
+    # Also install in /mnt/cdrom/bootme for backward compatibility
+    install -D -m 644 $MA_BOOT_SERVER_CACERT $VROOT/mnt/cdrom/bootme/cacert/$MA_BOOT_SERVER/cacert.pem
+    echo $MA_BOOT_SERVER > $VROOT/mnt/cdrom/bootme/BOOTSERVER
+fi
 
-# Disable all services in reference image
-/usr/sbin/chroot $VROOT /bin/sh -c "/sbin/chkconfig --list | awk '{ print \$1 }' | xargs -i /sbin/chkconfig {} off"
-
-# Clean up
-umount $VROOT/proc
-
+success >&3 2>&4
+echo >&3 2>&4
 exit 0
