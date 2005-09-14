@@ -9,7 +9,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004 The Trustees of Princeton University
 #
-# $Id: vserver-reference.init,v 1.17 2005/09/02 19:46:37 mlhuang Exp $
+# $Id$
 #
 
 case "$1" in
@@ -47,7 +47,7 @@ chmod 0000 /vservers
 setattr --barrier /vservers
 
 # Copy configuration files from host to reference image
-for file in /etc/hosts /etc/resolv.conf /etc/yum.conf ; do
+for file in /etc/hosts /etc/resolv.conf /etc/yum.conf /etc/planetlab/node_id ; do
     if [ -r $file ] ; then
 	echo $file | cpio -p -d -u $VROOT 2>/dev/null
     fi
