@@ -1,6 +1,6 @@
 %define name vserver-reference
 %define version 3.1
-%define release 1.planetlab%{?date:.%{date}}
+%define release 2.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -60,7 +60,7 @@ fi
 if [ -r %{vcached_pid} ] ; then
     kill $(cat %{vcached_pid})
 fi
-touch %{vcached_pid}
+echo $$ > %{vcached_pid}
 
 # vcached will clean up .vtmp later
 mkdir -p /vservers/.vtmp
