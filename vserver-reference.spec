@@ -38,6 +38,9 @@ find vservers/vserver-reference | cpio -p -d -u $RPM_BUILD_ROOT/
 # If run under sudo, allow user to delete the build directory
 if [ -n "$SUDO_USER" ] ; then
     chown -R $SUDO_USER .
+    # Some temporary cdroot files like /var/empty/sshd and
+    # /usr/bin/sudo get created with non-readable permissions.
+    find . -not -perm +0600 -exec chmod u+rw {} \;
 fi
 
 %clean
