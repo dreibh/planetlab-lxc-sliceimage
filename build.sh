@@ -8,7 +8,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2005 The Trustees of Princeton University
 #
-# $Id: build.sh,v 1.1 2005/09/03 21:44:16 mlhuang Exp $
+# $Id: build.sh,v 1.2 2005/10/01 18:20:08 mlhuang Exp $
 #
 
 # Get the production /etc/yum.conf file. XXX When MAs begin deploying
@@ -33,6 +33,7 @@ d
 EOF
 
     # And replace them with a section for the RPMS that were just built
+    yum-arch $(dirname $RPM_BUILD_DIR)/RPMS
     cat >> yum.conf <<EOF
 [Bootstrap]
 name=Bootstrap RPMS -- $(dirname $RPM_BUILD_DIR)/RPMS/
