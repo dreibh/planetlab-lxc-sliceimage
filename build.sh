@@ -8,7 +8,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2005 The Trustees of Princeton University
 #
-# $Id: build.sh,v 1.2 2005/10/01 18:20:08 mlhuang Exp $
+# $Id: build.sh,v 1.3 2006/03/10 18:20:28 mlhuang Exp $
 #
 
 # Get the production /etc/yum.conf file. XXX When MAs begin deploying
@@ -34,6 +34,12 @@ EOF
 
     # And replace them with a section for the RPMS that were just built
     yum-arch $(dirname $RPM_BUILD_DIR)/RPMS
+    createrepo $(dirname $RPM_BUILD_DIR)/RPMS || :
+    # If run under sudo, allow user to delete the headers/ and
+    # repodata/ directories.
+    if [ -n "$SUDO_USER" ] ; then
+	chown -R $SUDO_USER $(dirname $RPM_BUILD_DIR)/RPMS
+    fi
     cat >> yum.conf <<EOF
 [Bootstrap]
 name=Bootstrap RPMS -- $(dirname $RPM_BUILD_DIR)/RPMS/
