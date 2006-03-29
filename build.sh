@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: build.sh,v 1.5 2006/03/29 17:08:45 mlhuang Exp $
+# $Id: build.sh,v 1.6 2006/03/29 19:19:55 mlhuang Exp $
 #
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -79,6 +79,9 @@ while getopts "r:a:h" opt ; do
 	    ;;
     esac
 done
+
+# Do not tolerate errors
+set -e
 
 # Make /vservers
 vroot=$PWD/vservers/vserver-reference
