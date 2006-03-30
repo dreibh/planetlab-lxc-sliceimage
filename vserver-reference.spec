@@ -1,6 +1,6 @@
 %define name vserver-reference
 %define version 3.1
-%define release 2%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define release 3%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -28,17 +28,25 @@ as the installation base for new PlanetLab slivers.
 %setup -q
 
 %build
-RPM_BUILD_DIR=$RPM_BUILD_DIR ./build.sh
+pushd vserver-reference
+./build.sh -r 2
+# Not until we can get the build server to run Fedora Core 4 or an
+# updated version of yum.
+#./build.sh -r 4
+popd
 
 %install
 rm -rf $RPM_BUILD_ROOT
+
+pushd vserver-reference
 install -D -m 755 %{name}.init $RPM_BUILD_ROOT/%{_initrddir}/%{name}
 find vservers/vserver-reference | cpio -p -d -u $RPM_BUILD_ROOT/
+popd
 
 # If run under sudo, allow user to delete the build directory
 if [ -n "$SUDO_USER" ] ; then
     chown -R $SUDO_USER .
-    # Some temporary cdroot files like /var/empty/sshd and
+    # Some temporary chroot files like /var/empty/sshd and
     # /usr/bin/sudo get created with non-readable permissions.
     find . -not -perm +0600 -exec chmod u+rw {} \;
 fi
