@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: build.sh,v 1.7 2006/03/29 20:26:41 mlhuang Exp $
+# $Id: build.sh,v 1.8 2006/03/31 21:18:10 mlhuang Exp $
 #
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -17,7 +17,7 @@ if [ -d ../build ] ; then
     PATH=$PATH:../build
     srcdir=..
 else
-    echo "Error: Could not find sources in either . or .."
+    echo "Error: Could not find $(cd .. && pwd -P)/build/"
     exit 1
 fi
 
