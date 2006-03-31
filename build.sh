@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: build.sh,v 1.6 2006/03/29 19:19:55 mlhuang Exp $
+# $Id: build.sh,v 1.7 2006/03/29 20:26:41 mlhuang Exp $
 #
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -92,6 +92,9 @@ for package in "${packagelist[@]}" ; do
     packages="$packages -p $package"
 done
 mkfedora -v -r $releasever -a $basearch $packages $vroot
+
+# Disable all services in reference image
+chroot $vroot sh -c "/sbin/chkconfig --list | awk '{ print \$1 }' | xargs -i /sbin/chkconfig {} off"
 
 # This tells the Boot Manager that it is okay to update
 # /etc/resolv.conf and /etc/hosts whenever the network configuration
