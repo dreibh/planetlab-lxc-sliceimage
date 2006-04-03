@@ -43,20 +43,18 @@ install -D -m 755 %{name}.init $RPM_BUILD_ROOT/%{_initrddir}/%{name}
 find vservers/vserver-reference | cpio -p -d -u $RPM_BUILD_ROOT/
 popd
 
-# If run under sudo, allow user to delete the build directory
-if [ -n "$SUDO_USER" ] ; then
-    chown -R $SUDO_USER .
-    # Some temporary chroot files like /var/empty/sshd and
-    # /usr/bin/sudo get created with non-readable permissions.
-    find . -not -perm +0600 -exec chmod u+rw {} \;
-fi
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-# If run under sudo, allow user to delete the built RPM
+# If run under sudo
 if [ -n "$SUDO_USER" ] ; then
-    chown $SUDO_USER %{_rpmdir}/%{_arch}/%{name}-%{version}-%{release}.%{_arch}.rpm
+    # Allow user to delete the build directory
+    chown -R $SUDO_USER .
+    # Some temporary cdroot files like /var/empty/sshd and
+    # /usr/bin/sudo get created with non-readable permissions.
+    find . -not -perm +0600 -exec chmod u+rw {} \;
+    # Allow user to delete the built RPM(s)
+    chown -R $SUDO_USER %{_rpmdir}/%{_arch}
 fi
 
 %files
