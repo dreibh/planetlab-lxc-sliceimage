@@ -1,4 +1,4 @@
-%define name vserver-reference
+%define name vserver
 %define version 3.1
 %define release 3%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -17,12 +17,29 @@ Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Requires: util-vserver, e2fsprogs, yum
 
-AutoReqProv: no
 %define debug_package %{nil}
 
 %description
+This package does not really exist.
+
+%package reference
+Summary: VServer reference image
+Group: Applications/System
+AutoReqProv: no
+
+%description reference
 This package creates the virtual server (VServer) reference image used
 as the installation base for new PlanetLab slivers.
+
+%package system-packages
+Summary: System slice packages
+Group: Applications/System
+Requires: vserver-reference = %{version}-%{release}
+AutoReqProv: no
+
+%description system-packages
+This package installs the RPMS necessary to create system ("root
+ resource") slices from the virtual server (VServer) reference image.
 
 %prep
 %setup -q
@@ -33,14 +50,15 @@ pushd vserver-reference
 # Not until we can get the build server to run Fedora Core 4 or an
 # updated version of yum.
 #./build.sh -r 4
+./system-packages.sh
 popd
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
 pushd vserver-reference
-install -D -m 755 %{name}.init $RPM_BUILD_ROOT/%{_initrddir}/%{name}
-find vservers/vserver-reference | cpio -p -d -u $RPM_BUILD_ROOT/
+install -D -m 755 vserver-reference.init $RPM_BUILD_ROOT/%{_initrddir}/vserver-reference
+find vservers | cpio -p -d -u $RPM_BUILD_ROOT/
 popd
 
 %clean
@@ -57,14 +75,18 @@ if [ -n "$SUDO_USER" ] ; then
     chown -R $SUDO_USER %{_rpmdir}/%{_arch}
 fi
 
-%files
+%files reference
 %defattr(-,root,root)
-%{_initrddir}/%{name}
+%{_initrddir}/vserver-reference
 /vservers/vserver-reference
+
+%files system-packages
+%defattr(-,root,root)
+/vservers/system-packages
 
 %define vcached_pid /var/run/vcached.pid
 
-%pre
+%pre reference
 # Stop vcached
 if [ -r %{vcached_pid} ] ; then
     kill $(cat %{vcached_pid})
@@ -83,9 +105,9 @@ fi
 # Allow vcached to run again
 rm -f %{vcached_pid}
 
-%post
-chkconfig --add %{name}
-chkconfig %{name} on
+%post reference
+chkconfig --add vserver-reference
+chkconfig vserver-reference on
 [ "$PL_BOOTCD" = "1" ] || service vserver-reference start
 
 %changelog
