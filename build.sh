@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: build.sh,v 1.8 2006/03/31 21:18:10 mlhuang Exp $
+# $Id$
 #
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -92,6 +92,26 @@ for package in "${packagelist[@]}" ; do
     packages="$packages -p $package"
 done
 mkfedora -v -r $releasever -a $basearch $packages $vroot
+
+# Clean /dev
+rm -rf $vroot/dev
+mkdir -p $vroot/dev
+mknod -m 666 $vroot/dev/null c 1 3
+mknod -m 666 $vroot/dev/zero c 1 5
+mknod -m 666 $vroot/dev/full c 1 7
+mknod -m 644 $vroot/dev/random c 1 8
+mknod -m 644 $vroot/dev/urandom c 1 9
+mknod -m 666 $vroot/dev/tty c 5 0
+mknod -m 666 $vroot/dev/ptmx c 5 2
+# For bash command substitution
+ln -nsf ../proc/self/fd /dev/fd
+# For df and linuxconf
+touch $vroot/dev/hdv1
+# For TUN/TAP
+mkdir -p $vroot/dev/net
+mknod -m 600 $vroot/dev/net/tun c 10 200
+# For pseudo ttys
+mkdir -p $vroot/dev/pts
 
 # Disable all services in reference image
 chroot $vroot sh -c "/sbin/chkconfig --list | awk '{ print \$1 }' | xargs -i /sbin/chkconfig {} off"
