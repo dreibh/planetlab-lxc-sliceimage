@@ -104,7 +104,7 @@ mknod -m 644 $vroot/dev/urandom c 1 9
 mknod -m 666 $vroot/dev/tty c 5 0
 mknod -m 666 $vroot/dev/ptmx c 5 2
 # For bash command substitution
-ln -nsf ../proc/self/fd /dev/fd
+ln -nsf ../proc/self/fd $vroot/dev/fd
 # For df and linuxconf
 touch $vroot/dev/hdv1
 # For TUN/TAP
