@@ -46,10 +46,7 @@ This package installs the RPMS necessary to create system ("root
 
 %build
 pushd vserver-reference
-./build.sh -r 2
-# Not until we can get the build server to run Fedora Core 4 or an
-# updated version of yum.
-#./build.sh -r 4
+./build.sh -r 4
 ./system-packages.sh
 popd
 
