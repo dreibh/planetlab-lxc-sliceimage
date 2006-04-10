@@ -91,7 +91,7 @@ install -d -m 755 $vroot
 for package in "${packagelist[@]}" ; do
     packages="$packages -p $package"
 done
-mkfedora -v -r $releasever -a $basearch $packages $vroot
+mkfedora -v -r $releasever -a $basearch -k $packages $vroot
 
 # Clean /dev
 rm -rf $vroot/dev
