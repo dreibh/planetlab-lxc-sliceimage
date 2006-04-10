@@ -6,7 +6,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id$
+# $Id: system-packages.sh,v 1.1 2006/04/05 20:32:28 mlhuang Exp $
 #
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -83,13 +83,11 @@ for slice in pl_netflow pl_conf ; do
 	    version=${version##*:}
 	    repository=${words[3]}
 
-	    if [ -f $rpms/$package-$version.$arch.rpm ] ; then
-		break
-	    fi
-
 	    baseurl=
 	    while read line ; do
-		if grep -q "^\[$repository\]" <<<$line ; then
+		if [ -z "$line" ] ; then
+		    continue
+		elif grep -q "^\[$repository\]" <<<$line ; then
 		    baseurl=$repository
 		elif [ "$baseurl" = "$repository" ] && grep -q "^baseurl=" <<<$line ; then
 		    eval $line
@@ -119,11 +117,12 @@ for slice in pl_netflow pl_conf ; do
 		    break
 		fi
 	    done <$vroot/etc/yum.conf
-	done < <(yum -c $vroot/etc/yum.conf --installroot=$vroot shell <<EOF
+	done < <((yum -c $vroot/etc/yum.conf --installroot=$vroot shell <<EOF
 install $packages
 transaction solve
 transaction list
 EOF
+	    ) | sed -ne '/^Installing:/,/^Transaction Summary/p' 
 	)
     else
         # This is pretty fucked up. Turn on verbose debugging and the
