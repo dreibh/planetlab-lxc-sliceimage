@@ -40,42 +40,45 @@ exec &>/var/log/vserver-reference.log
 
 echo -n $"Updating VServer reference: " >&3 2>&4
 
-VROOT=$__DEFAULT_VSERVERDIR/vserver-reference
+shopt -s nullglob
+
+VROOTS="$__DEFAULT_VSERVERDIR/vserver-reference $__DEFAULT_VSERVERDIR/.vcache/*"
 
 # Make sure the barrier bit is set
 chmod 0000 /vservers
 setattr --barrier /vservers
 
-# Copy configuration files from host to reference image
-for file in /etc/hosts /etc/resolv.conf /etc/yum.conf /etc/planetlab/node_id ; do
+# Copy configuration files from host to slices
+for file in /etc/hosts /etc/resolv.conf /etc/yum.conf /etc/planetlab/node_id \
+            /etc/planetlab/plc_config* /etc/planetlab/php/* ; do
     if [ -r $file ] ; then
-	echo $file | cpio -p -d -u $VROOT 2>/dev/null
+	for vroot in $VROOTS ; do
+	    if [ -f $vroot/etc/AUTO_UPDATE_NET_FILES ] ; then
+		install -D -m 644 $file $vroot/$file
+	    fi
+	done
     fi
 done
 
-# Install and parse Management Authority (MA) configuration
-if [ -r /etc/planetlab/primary_ma ] ; then
-    . /etc/planetlab/primary_ma
-    install -D -m 644 /etc/planetlab/primary_ma $VROOT/etc/planetlab/primary_ma
-elif [ -d /mnt/cdrom/bootme/cacert ] ; then
-    MA_NAME="PlanetLab Central"
-    MA_BOOT_SERVER=$(head -1 /mnt/cdrom/bootme/BOOTSERVER)
-    MA_BOOT_SERVER_CACERT=/mnt/cdrom/bootme/cacert/$MA_BOOT_SERVER/cacert.pem
-    mkdir -p $VROOT/etc/planetlab
-    cat > $VROOT/etc/planetlab/primary_ma <<EOF
-MA_NAME="$MA_NAME"
-MA_BOOT_SERVER="$MA_BOOT_SERVER"
-MA_BOOT_SERVER_CACERT="$MA_BOOT_SERVER_CACERT"
-EOF
+# Parse PLC configuration
+if [ -r /etc/planetlab/plc_config ] ; then
+    . /etc/planetlab/plc_config
+else
+    PLC_NAME="PlanetLab"
+    PLC_BOOT_HOST="boot.planet-lab.org"
+    PLC_BOOT_SSL_CRT="/etc/planetlab/boot_ssl.crt"
 fi
 
-if [ -r "$MA_BOOT_SERVER_CACERT" ] ; then
-    # Install boot server certificate
-    install -D -m 644 $MA_BOOT_SERVER_CACERT $VROOT/$MA_BOOT_SERVER_CACERT
+CACERT=/mnt/cdrom/bootme/cacert/$PLC_BOOT_HOST/cacert.pem
+if [ -r $CACERT ] ; then
+    for vroot in $VROOTS ; do
+	# Install boot server certificate
+	install -D -m 644 $CACERT $vroot/$PLC_BOOT_SSL_CRT
 
-    # Also install in /mnt/cdrom/bootme for backward compatibility
-    install -D -m 644 $MA_BOOT_SERVER_CACERT $VROOT/mnt/cdrom/bootme/cacert/$MA_BOOT_SERVER/cacert.pem
-    echo $MA_BOOT_SERVER > $VROOT/mnt/cdrom/bootme/BOOTSERVER
+	# Also install in /mnt/cdrom/bootme for backward compatibility
+	install -D -m 644 $CACERT $vroot/mnt/cdrom/bootme/cacert/$PLC_BOOT_HOST/cacert.pem
+	echo $PLC_BOOT_HOST > $vroot/mnt/cdrom/bootme/BOOTSERVER
+    done
 fi
 
 success >&3 2>&4
