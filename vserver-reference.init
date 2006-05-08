@@ -60,10 +60,11 @@ setattr --barrier /vservers
 # Copy configuration files from host to slices
 for file in /etc/hosts /etc/resolv.conf /etc/yum.conf /etc/planetlab/node_id \
             /etc/planetlab/plc_config* /etc/planetlab/php/* \
+            /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora \
             /etc/pki/rpm-gpg/RPM-GPG-KEY-planetlab ; do
     if [ -r $file ] ; then
 	for vroot in $VROOTS ; do
-	    if [ "$file" = "/etc/pki/rpm-gpg/RPM-GPG-KEY-planetlab" -a \
+	    if [ "$(dirname $file)" = "/etc/pki/rpm-gpg" -a \
 		 ! -f $vroot/$file ] ; then
 		import=1
 	    else
