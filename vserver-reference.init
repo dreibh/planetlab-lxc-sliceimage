@@ -30,6 +30,15 @@ esac
 # VServer definitions
 . /usr/lib/util-vserver/util-vserver-vars
 
+# Parse PLC configuration
+if [ -r /etc/planetlab/plc_config ] ; then
+    . /etc/planetlab/plc_config
+else
+    PLC_NAME="PlanetLab"
+    PLC_SLICE_PREFIX="pl"
+    PLC_BOOT_HOST="boot.planet-lab.org"
+fi
+
 # Save stdout and stderr
 exec 3>&1
 exec 4>&2
@@ -42,7 +51,7 @@ echo -n $"Updating VServer reference: " >&3 2>&4
 
 shopt -s nullglob
 
-VROOTS="$__DEFAULT_VSERVERDIR/vserver-reference $__DEFAULT_VSERVERDIR/.vcache/*"
+VROOTS="$__DEFAULT_VSERVERDIR/vserver-reference $__DEFAULT_VSERVERDIR/.vcache/* $__DEFAULT_VSERVERDIR/${PLC_SLICE_PREFIX}_*"
 
 # Make sure the barrier bit is set
 chmod 0000 /vservers
@@ -50,36 +59,46 @@ setattr --barrier /vservers
 
 # Copy configuration files from host to slices
 for file in /etc/hosts /etc/resolv.conf /etc/yum.conf /etc/planetlab/node_id \
-            /etc/planetlab/plc_config* /etc/planetlab/php/* ; do
+            /etc/planetlab/plc_config* /etc/planetlab/php/* \
+            /etc/pki/rpm-gpg/RPM-GPG-KEY-planetlab ; do
     if [ -r $file ] ; then
 	for vroot in $VROOTS ; do
-	    if [ -f $vroot/etc/AUTO_UPDATE_NET_FILES ] ; then
-		install -D -m 644 $file $vroot/$file
+	    if [ "$file" = "/etc/pki/rpm-gpg/RPM-GPG-KEY-planetlab" -a \
+		 ! -f $vroot/$file ] ; then
+		import=1
+	    else
+		import=0
+	    fi
+	    install -D -m 644 $file $vroot/$file
+	    if [ $import -eq 1 ] ; then
+		chroot $vroot rpm --import $file
 	    fi
 	done
     fi
 done
 
-# Parse PLC configuration
-if [ -r /etc/planetlab/plc_config ] ; then
-    . /etc/planetlab/plc_config
-else
-    PLC_NAME="PlanetLab"
-    PLC_BOOT_HOST="boot.planet-lab.org"
-    PLC_BOOT_SSL_CRT="/etc/planetlab/boot_ssl.crt"
-fi
+# Old versions of the Boot Manager copied portions of the Boot CD to
+# /mnt/cdrom/bootme, to support old scripts which assumed that the
+# Boot CD was mounted even in production mode. Now, it just copies it
+# to /usr/boot/cacert.pem. In any case, copy the boot server
+# certificate to the place(s) where BootServerRequest expects to find
+# it (/usr/boot/cacert.pem by default, /mnt/cdrom/bootme in old
+# versions).
+CACERT="/usr/boot/cacert.pem /mnt/cdrom/bootme/cacert/$PLC_BOOT_HOST/cacert.pem"
+for cacert in $CACERT ; do
+    if [ -r $cacert ] ; then
+	for vroot in $VROOTS ; do
+	    # Install boot server certificate
+	    install -D -m 644 $cacert $vroot/usr/boot/cacert.pem
+	    echo $PLC_BOOT_HOST > $vroot/usr/boot/boot_server
 
-CACERT=/mnt/cdrom/bootme/cacert/$PLC_BOOT_HOST/cacert.pem
-if [ -r $CACERT ] ; then
-    for vroot in $VROOTS ; do
-	# Install boot server certificate
-	install -D -m 644 $CACERT $vroot/$PLC_BOOT_SSL_CRT
-
-	# Also install in /mnt/cdrom/bootme for backward compatibility
-	install -D -m 644 $CACERT $vroot/mnt/cdrom/bootme/cacert/$PLC_BOOT_HOST/cacert.pem
-	echo $PLC_BOOT_HOST > $vroot/mnt/cdrom/bootme/BOOTSERVER
-    done
-fi
+	    # Also install in /mnt/cdrom/bootme for backward compatibility
+	    install -D -m 644 $cacert $vroot/mnt/cdrom/bootme/cacert/$PLC_BOOT_HOST/cacert.pem
+	    echo $PLC_BOOT_HOST > $vroot/mnt/cdrom/bootme/BOOTSERVER
+	done
+	break
+    fi
+done
 
 success >&3 2>&4
 echo >&3 2>&4
