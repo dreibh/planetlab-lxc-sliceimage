@@ -60,23 +60,21 @@ setattr --barrier /vservers
 # Copy configuration files from host to slices
 for file in /etc/hosts /etc/resolv.conf /etc/yum.conf /etc/planetlab/node_id \
             /etc/planetlab/plc_config* /etc/planetlab/php/* \
-            /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora \
-            /etc/pki/rpm-gpg/RPM-GPG-KEY-planetlab ; do
+            /etc/pki/rpm-gpg/* ; do
     if [ -r $file ] ; then
 	for vroot in $VROOTS ; do
-	    if [ "$(dirname $file)" = "/etc/pki/rpm-gpg" -a \
-		 ! -f $vroot/$file ] ; then
-		import=1
-	    else
-		import=0
-	    fi
 	    install -D -m 644 $file $vroot/$file
-	    if [ $import -eq 1 ] ; then
-		chroot $vroot rpm --import $file
-	    fi
 	done
     fi
 done
+
+# (Re)install GPG signing keys
+if [ -d /etc/pki/rpm-gpg ] ; then
+    for vroot in $VROOTS ; do
+	chroot $vroot rpm --allmatches -e gpg-pubkey || :
+	chroot $vroot rpm --import /etc/pki/rpm-gpg/* || :
+    done
+fi
 
 # Old versions of the Boot Manager copied portions of the Boot CD to
 # /mnt/cdrom/bootme, to support old scripts which assumed that the
