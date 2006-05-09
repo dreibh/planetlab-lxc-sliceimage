@@ -56,6 +56,7 @@ rm -rf $RPM_BUILD_ROOT
 
 pushd vserver-reference
 install -D -m 755 vserver-reference.init $RPM_BUILD_ROOT/%{_initrddir}/vserver-reference
+install -D -m 644 vserver-reference.cron $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/vserver-reference
 find vservers | cpio -p -d -u $RPM_BUILD_ROOT/
 popd
 
@@ -76,6 +77,7 @@ fi
 %files reference
 %defattr(-,root,root)
 %{_initrddir}/vserver-reference
+%{_sysconfdir}/cron.d/vserver-reference
 /vservers/vserver-reference
 
 %files system-packages
@@ -107,6 +109,11 @@ rm -f %{vcached_pid}
 chkconfig --add vserver-reference
 chkconfig vserver-reference on
 [ "$PL_BOOTCD" = "1" ] || service vserver-reference start
+
+# Randomize daily run time
+M=$((60 * $RANDOM / 32768))
+H=$((24 * $RANDOM / 32768))
+sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
 * Tue Sep  1 2005 Mark Huang <mlhuang@cs.princeton.edu> 3.1-1.planetlab

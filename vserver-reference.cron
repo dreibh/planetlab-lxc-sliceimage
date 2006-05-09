@@ -1,0 +1,11 @@
+#
+# Runs once a day to update the VServer reference images and system
+# slice configuration files
+#
+# Mark Huang <mlhuang@cs.princeton.edu>
+# Copyright (C) 2006 The Trustees of Princeton University
+#
+# $Id: pl_mom.cron,v 1.1 2006/04/28 19:12:09 mlhuang Exp $
+#
+
+@M@ @H@ * * *	root	/etc/init.d/vserver-reference start >/dev/null 2>&1
