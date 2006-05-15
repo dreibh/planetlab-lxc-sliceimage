@@ -47,7 +47,7 @@ This package installs the RPMS necessary to create system ("root
 
 %build
 pushd vserver-reference
-./build.sh -r 4
+./build.sh
 ./system-packages.sh
 popd
 

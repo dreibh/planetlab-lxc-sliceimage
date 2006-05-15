@@ -24,7 +24,7 @@ fi
 export PATH
 
 # Release and architecture to install
-releasever=2
+releasever=4
 basearch=i386
 
 # Packages to install
