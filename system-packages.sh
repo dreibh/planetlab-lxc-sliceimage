@@ -6,7 +6,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: system-packages.sh,v 1.1 2006/04/05 20:32:28 mlhuang Exp $
+# $Id: system-packages.sh,v 1.2 2006/04/10 22:21:48 mlhuang Exp $
 #
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -25,41 +25,6 @@ list ()
 	curl --fail --silent --max-time 60 $url
     fi
 }
-
-# pl_netflow requires third party MySQL RPMs
-mysql_mirrors=(
-file:///usr/share/mirrors/mysql
-http://boot.planet-lab.org/install-rpms/3rdparty
-)
-
-for mirror in "${mysql_mirrors[@]}" ; do
-    baseurl=$mirror/
-    if list $baseurl | grep -q "MySQL-server.*rpm" ; then
-	break
-    fi
-    unset baseurl
-done
-
-if [ -z "$baseurl" ] ; then
-    echo "Error: MySQL-server RPM package"
-    echo "       could not be found in any of the following locations:"
-    echo
-    for mirror in ${mysql_mirrors[@]} ; do
-	echo $mirror
-    done
-    echo
-    exit 1
-fi
-
-# Add MySQL mirror to yum.conf
-if ! grep -q mysql $vroot/etc/yum.conf ; then
-    cat >>$vroot/etc/yum.conf <<EOF
-
-[mysql]
-name=MySQL
-baseurl=$baseurl
-EOF
-fi
 
 # Space separated list of required packages
 pl_netflow="netflow"
