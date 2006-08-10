@@ -68,6 +68,9 @@ for file in /etc/hosts /etc/resolv.conf /etc/yum.conf /etc/planetlab/node_id \
     fi
 done
 
+# Remove stale RPM locks
+rm -f $vroot/var/lib/rpm/__db*
+
 # (Re)install GPG signing keys
 if [ -d /etc/pki/rpm-gpg ] ; then
     for vroot in $VROOTS ; do
