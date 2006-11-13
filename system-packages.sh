@@ -6,12 +6,12 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: system-packages.sh,v 1.2 2006/04/10 22:21:48 mlhuang Exp $
+# $Id: system-packages.sh,v 1.3 2006/07/01 18:13:31 mlhuang Exp $
 #
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
-vroot=$PWD/vservers/vserver-reference
+vroot=$PWD/vservers/.vref/default
 rpms=$PWD/vservers/system-packages
 install -d -m 755 $rpms
 
@@ -27,11 +27,10 @@ list ()
 }
 
 # Space separated list of required packages
-pl_netflow="netflow"
-pl_conf="sidewinder-PlanetLab-SCS sidewinder-common"
+planetflow="netflow"
 
-for slice in pl_netflow pl_conf ; do
-    packages=${!slice}
+for vref in planetflow ; do
+    packages=${!vref}
     dependencies=()
 
     if yum --help | grep -q shell ; then
@@ -63,7 +62,7 @@ for slice in pl_netflow pl_conf ; do
 		    # it would be too much trouble. Just try
 		    # downloading it from one of the common
 		    # subdirectories.
-		    echo "* $slice: $repository $package-$version.$arch.rpm"
+		    echo "* $vref: $repository $package-$version.$arch.rpm"
 		    for subdirectory in "" Fedora/RPMS $arch ; do
 			if curl --fail --silent --max-time 60 $baseurl/$subdirectory/$package-$version.$arch.rpm \
 			    >$rpms/$package-$version.$arch.rpm ; then
@@ -105,7 +104,7 @@ EOF
 		path=$(sed -ne 's/failover: path = \(.*\)/\1/p' <<<$line)
 	    else
 		if [ "${path##*.}" = "rpm" ] ; then
-		    echo "* $slice: $(basename $path)"
+		    echo "* $vref: $(basename $path)"
 		    curl --fail --silent --max-time 60 $baseURL/$path >$rpms/$(basename $path)
 		    dependencies[${#dependencies[*]}]=$(basename $path)
 		fi
@@ -117,7 +116,7 @@ EOF
 
     for dependency in "${dependencies[@]}" ; do
 	echo $dependency
-    done >$rpms/$slice.lst
+    done >$rpms/$vref.lst
 done
 
 # Clean yum cache
