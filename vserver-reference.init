@@ -2,7 +2,7 @@
 #
 # vserver-reference	Updates VServer reference
 #
-# Load before pl_conf, pl_nm, vcached, and vservers
+# Load before nm, vcached, and vservers
 # chkconfig: 3 60 80
 # description: Builds VServer reference image
 #
@@ -47,15 +47,53 @@ exec 4>&2
 exec 2>&1
 exec &>/var/log/vserver-reference.log
 
-echo -n $"Updating VServer reference: " >&3 2>&4
-
 shopt -s nullglob
 
-VROOTS="$__DEFAULT_VSERVERDIR/vserver-reference $__DEFAULT_VSERVERDIR/.vcache/* $__DEFAULT_VSERVERDIR/${PLC_SLICE_PREFIX}_*"
-
 # Make sure the barrier bit is set
-chmod 0000 /vservers
-setattr --barrier /vservers
+chmod 0000 "$__DEFAULT_VSERVERDIR"
+setattr --barrier "$__DEFAULT_VSERVERDIR"
+
+# Build reference images for system slices
+# XXX Use Stork?
+for lst in "$__DEFAULT_VSERVERDIR/system-packages/"*.lst ; do
+    NAME=$(basename $lst .lst)
+
+    # Copy base reference image
+    if [ ! -d "$__DEFAULT_VSERVERDIR/.vref/$NAME" ] ; then
+	echo -n $"Building VServer reference image for $NAME: " >&3 2>&4
+
+	# Build in temporary directory
+	mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
+	TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/$NAME.XXXXXX")
+	mkdir -p "$__DEFAULT_VSERVERDIR/.vref"
+	"$__PKGLIBDIR/vbuild" "$__DEFAULT_VSERVERDIR/.vref/default" "$TMP"
+	RETVAL=$?
+
+	# Install/update additional packages
+ 	if [ $RETVAL -eq 0 ] ; then
+	    pushd "$__DEFAULT_VSERVERDIR/system-packages" >/dev/null
+	    xargs rpm --root "$TMP" --install < "$NAME.lst"
+	    RETVAL=$?
+	    popd >/dev/null
+	fi
+
+        # Clean RPM state
+	rm -f "$TMP/var/lib/rpm/__db"*
+
+	# Move it to its permanent location when complete
+ 	if [ $RETVAL -eq 0 ] ; then
+	    mv "$TMP" "$__DEFAULT_VSERVERDIR/.vref/$NAME"
+	    success >&3 2>&4
+	else
+	    failure >&3 2>&4
+	fi
+	echo >&3 2>&4
+    fi
+done
+
+echo -n $"Updating VServer reference images: " >&3 2>&4
+
+VROOTS="$__DEFAULT_VSERVERDIR/.vref/* $__DEFAULT_VSERVERDIR/.vcache/* $__DEFAULT_VSERVERDIR/${PLC_SLICE_PREFIX}_*"
 
 # Copy configuration files from host to slices
 for file in /etc/hosts /etc/resolv.conf /etc/yum.conf /etc/planetlab/node_id \
@@ -104,4 +142,5 @@ done
 
 success >&3 2>&4
 echo >&3 2>&4
+
 exit 0
