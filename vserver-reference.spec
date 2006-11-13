@@ -1,6 +1,6 @@
 %define name vserver
 %define version 4.0
-%define release 2%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define release 3%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -78,7 +78,7 @@ fi
 %defattr(-,root,root)
 %{_initrddir}/vserver-reference
 %{_sysconfdir}/cron.d/vserver-reference
-/vservers/vserver-reference
+/vservers/.vref/default
 
 %files system-packages
 %defattr(-,root,root)
@@ -95,8 +95,8 @@ echo $$ > %{vcached_pid}
 
 # vcached will clean up .vtmp later
 mkdir -p /vservers/.vtmp
-if [ -d /vservers/vserver-reference ] ; then
-    mv /vservers/vserver-reference /vservers/.vtmp/vserver-reference.$RANDOM
+if [ -d /vservers/.vref ] ; then
+    mv /vservers/.vref /vservers/.vtmp/.vref.$RANDOM
 fi
 if [ -d /vservers/.vcache ] ; then
     mv /vservers/.vcache /vservers/.vtmp/.vcache.$RANDOM

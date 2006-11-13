@@ -84,10 +84,10 @@ done
 set -e
 
 # Make /vservers
-vroot=$PWD/vservers/vserver-reference
+vroot=$PWD/vservers/.vref/default
 install -d -m 755 $vroot
 
-# Install vserver-reference system
+# Install default reference image
 for package in "${packagelist[@]}" ; do
     packages="$packages -p $package"
 done
