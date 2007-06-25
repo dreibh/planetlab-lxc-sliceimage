@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id$
+# $Id: build.sh,v 1.14 2006/11/13 19:03:53 mlhuang Exp $
 #
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -48,6 +48,7 @@ traceroute
 time
 vixie-cron
 wget
+which
 yum
 curl
 gzip
