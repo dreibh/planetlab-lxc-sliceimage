@@ -1,5 +1,5 @@
 %define name vserver
-%define version 4.0
+%define version 4.1
 %define release 1%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 Vendor: PlanetLab
