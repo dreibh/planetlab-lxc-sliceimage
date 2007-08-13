@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: build.sh,v 1.15 2007/06/25 19:40:01 deisenst Exp $
+# $Id: build.sh,v 1.16 2007/06/25 19:52:27 deisenst Exp $
 #
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -93,7 +93,6 @@ for package in "${packagelist[@]}" ; do
     packages="$packages -p $package"
 done
 mkfedora -v -r $releasever -a $basearch -k $packages $vroot
-rpm --root $vroot -U jre-6u1-linux-i586.rpm
 
 # Clean /dev
 rm -rf $vroot/dev
