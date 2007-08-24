@@ -6,7 +6,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: system-packages.sh,v 1.4 2006/11/13 18:59:32 mlhuang Exp $
+# $Id: system-packages.sh,v 1.5 2007/08/24 06:06:04 mef Exp $
 #
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -63,7 +63,7 @@ for vref in planetflow ; do
 		    # downloading it from one of the common
 		    # subdirectories.
 		    echo "* $vref: $repository $package-$version.$arch.rpm"
-		    for subdirectory in "" Fedora/RPMS $arch ; do
+		    for subdirectory in "" Fedora/RPMS Fedora $arch ; do
 			if curl --fail --silent --max-time 60 $baseurl/$subdirectory/$package-$version.$arch.rpm \
 			    >$rpms/$package-$version.$arch.rpm ; then
 			    break
