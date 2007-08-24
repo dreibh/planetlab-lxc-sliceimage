@@ -4,7 +4,7 @@
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
-Distribution: PlanetLab 3.0
+Distribution: PlanetLab 4.0
 URL: http://cvs.planet-lab.org/cvs/vserver-reference
 
 Summary: VServer reference image
@@ -47,7 +47,7 @@ This package installs the RPMS necessary to create system ("root
 
 %build
 pushd vserver-reference
-./build.sh -r $([ -f "/etc/fedora-release" ] && awk ' { print $4 } ' /etc/fedora-release || echo 4)
+./build.sh -r $([ -f "/etc/fedora-release" ] && awk ' { if ($3=="Core") print $4; else print $3 } ' /etc/fedora-release || echo 6)
 ./system-packages.sh
 popd
 
