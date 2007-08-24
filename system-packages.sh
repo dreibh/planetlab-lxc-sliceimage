@@ -6,7 +6,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: system-packages.sh,v 1.3 2006/07/01 18:13:31 mlhuang Exp $
+# $Id: system-packages.sh,v 1.4 2006/11/13 18:59:32 mlhuang Exp $
 #
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -73,7 +73,7 @@ for vref in planetflow ; do
 
 		    # Assert that we got it successfully
 		    if [ ! -f $rpms/$package-$version.$arch.rpm ] ; then
-			echo "Failed to fetch $package-$version.$arch.rpm from $repository" >&2
+			echo "Failed to fetch $package-$version.$arch.rpm from $repository ($baseurl/$subdirectory)" >&2
 			false
 		    fi
 
