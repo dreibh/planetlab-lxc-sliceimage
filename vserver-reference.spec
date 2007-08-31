@@ -47,7 +47,7 @@ This package installs the RPMS necessary to create system ("root
 
 %build
 pushd vserver-reference
-./build.sh -r $([ -f "/etc/fedora-release" ] && awk ' { if ($2=="Core") print $4; else print $3 } ' /etc/fedora-release || echo 4)
+./build.sh
 ./system-packages.sh
 popd
 
