@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: build.sh,v 1.18.2.1 2007/08/30 16:39:09 mef Exp $
+# $Id: build.sh,v 1.19 2007/08/31 02:28:35 mef Exp $
 #
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -59,6 +59,7 @@ gzip
 perl
 python
 tar
+jre-6u1-linux
 findutils
 )
 
