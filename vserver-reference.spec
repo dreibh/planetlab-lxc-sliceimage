@@ -46,7 +46,7 @@ This package installs the RPMS necessary to create system ("root
 %setup -q
 
 %build
-pushd vserver-reference
+pushd VserverReference
 ./build.sh
 ./system-packages.sh
 popd
@@ -54,7 +54,7 @@ popd
 %install
 rm -rf $RPM_BUILD_ROOT
 
-pushd vserver-reference
+pushd VserverReference
 install -D -m 755 vserver-reference.init $RPM_BUILD_ROOT/%{_initrddir}/vserver-reference
 install -D -m 644 vserver-reference.cron $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/vserver-reference
 find vservers | cpio -p -d -u $RPM_BUILD_ROOT/
