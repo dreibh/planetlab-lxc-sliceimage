@@ -61,6 +61,7 @@ python
 tar
 jre
 findutils
+filesystem
 )
 
 # vserver-reference packages used for reference image
