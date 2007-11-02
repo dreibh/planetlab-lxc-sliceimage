@@ -30,6 +30,16 @@ esac
 # VServer definitions
 . /usr/lib/util-vserver/util-vserver-vars
 
+# Save stdout and stderr
+exec 3>&1
+exec 4>&2
+
+# Redirect stdout and stderr to a log file
+exec 2>&1
+exec &>>/var/log/vserver-reference.log
+
+echo "--- STARTING $(date) ---"  >&3 2>&4
+
 # Parse PLC configuration
 if [ -r /etc/planetlab/plc_config ] ; then
     . /etc/planetlab/plc_config
@@ -38,14 +48,6 @@ else
     PLC_SLICE_PREFIX="pl"
     PLC_BOOT_HOST="boot.planet-lab.org"
 fi
-
-# Save stdout and stderr
-exec 3>&1
-exec 4>&2
-
-# Redirect stdout and stderr to a log file
-exec 2>&1
-exec &>/var/log/vserver-reference.log
 
 shopt -s nullglob
 
@@ -141,6 +143,7 @@ for cacert in $CACERT ; do
 done
 
 success >&3 2>&4
+echo "--- DONE $(date) ---"  >&3 2>&4
 echo >&3 2>&4
 
 exit 0
