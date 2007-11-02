@@ -1,11 +1,11 @@
 %define name vserver
-%define version 4.1
-%define release 3%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define version 4.2
+%define release 0%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab 4.0
-URL: http://cvs.planet-lab.org/cvs/vserver-reference
+URL: https://svn.planet-lab.org/svn/VserverReference/
 
 Summary: VServer reference image
 Name: %{name}
@@ -35,12 +35,13 @@ as the installation base for new PlanetLab slivers.
 %package system-packages
 Summary: System slice packages
 Group: Applications/System
-Requires: vserver-reference = %{version}-%{release}
+#Requires: vserver-reference = %{version}-%{release}
+Requires: vserver-reference >= 4.2
 AutoReqProv: no
 
 %description system-packages
 This package installs the RPMS necessary to create system ("root
- resource") slices from the virtual server (VServer) reference image.
+resource") slices from the virtual server (VServer) reference image.
 
 %prep
 %setup -q
@@ -48,7 +49,6 @@ This package installs the RPMS necessary to create system ("root
 %build
 pushd VserverReference
 ./build.sh
-./system-packages.sh
 popd
 
 %install
@@ -84,7 +84,7 @@ fi
 
 %files system-packages
 %defattr(-,root,root)
-/vservers/system-packages
+/vservers/.vstub
 
 %define vcached_pid /var/run/vcached.pid
 
