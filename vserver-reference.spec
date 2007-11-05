@@ -35,8 +35,7 @@ as the installation base for new PlanetLab slivers.
 %package system-packages
 Summary: System slice packages
 Group: Applications/System
-#Requires: vserver-reference = %{version}-%{release}
-Requires: vserver-reference >= 4.2
+Requires: vserver-reference >= %{version}-%{release}
 AutoReqProv: no
 
 %description system-packages
