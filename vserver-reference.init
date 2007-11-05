@@ -74,9 +74,9 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*.cloned ; do
 	"$_VCLONE" "$REF"/ "$TMP"/
 	RETVAL=$?
 
-	# merge the stub with the reference to get the system slice
+	# merge the stub with the reference to get the system vserver
  	if [ $RETVAL -eq 0 ] ; then
-	    rsync -a "$__DEFAULT_VSERVERDIR/.vstub/$NAME"/ "$TMP"/
+	    (cd "$__DEFAULT_VSERVERDIR/.vstub/$NAME"/ && find . | cpio -m -d -u -p "$TMP"/)
 	    RETVAL=$?
 	fi
 
