@@ -73,29 +73,39 @@ for systemvserver in reference-vservers/*.lst ; do
     systemgroups=$(grep "^group:.*" $systemvserver | awk '{print $2}')
 
     vdir=${vstubdir}/${NAME}
+    rm -rf ${vdir}/*
     install -d -m 755 ${vdir}
 
     # Clone the base vserver reference to the system vserver reference
-    # OPTIMIZATION: Consider using "cp -al" in the future
-    rsync -a ${vref}/ ${vdir}/
+
+       # OPTIMIZATION: Consider using "cp -al" in the future
+    (cd ${vref} && find . | cpio -m -d -u -p ${vdir})
     rm -f ${vdir}/var/lib/rpm/__db*
 
     # Communicate to the initialization script from which vref this stub was cloned
     echo ${vrefname} > ${vdir}.cloned
 
-    # Construct the excludes & includes patterns for rsync
-    (cd ${vdir} && find *) > ${vdir}.excludes
-    echo "var/lib/rpm/*" > ${vdir}.includes
-
     # Install the system vserver specific packages
     [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y install $systempackages
     [ -n "$systemgroups" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y groupinstall $systemgroups
 
-    # Create a copy of the system vserver w/o the vserver reference files
-    mkdir -p ${vdir}-tmp/
-    rsync -a --include-from=${vdir}.includes --exclude-from=${vdir}.excludes ${vdir}/ ${vdir}-tmp/
+    # Create a copy of the system vserver w/o the vserver reference files. This is a two step process:
+
+    # step 1: figure out the new/changed files in ${vdir} vs. ${vref} and compute ${vdir}.changes
+    rsync -anv ${vdir}/ ${vref}/ > ${vdir}.changes
+    linecount=$(wc -l ${vdir}.changes | awk ' { print $1 } ')
+    let headcount=$linecount-3
+    let tailcount=$headcount-1
+    head -${headcount} ${vdir}.changes > ${vdir}.changes.1
+    tail -${tailcount} ${vdir}.changes.1 > ${vdir}.changes
+    rm -f ${vdir}.changes.1
+
+    # step 2: create the ${vdir} with just the list given in ${vdir}.changes 
+    install -d -m 755 ${vdir}-tmp/
+    rm -rf ${vdir}-tmp/*
+    (cd ${vdir} && cpio -l -m -d -u -p ${vdir}-tmp < ${vdir}.changes)
     rm -rf ${vdir}
-    rm -f ${vdir}.excludes ${vdir}.includes
+    rm -f  ${vdir}.changes
     mv ${vdir}-tmp ${vdir}
 done
 
