@@ -94,17 +94,21 @@ for systemvserver in reference-vservers/*.lst ; do
     # Create a copy of the system vserver w/o the vserver reference files and make it smaller. 
     # This is a three step process:
 
-    # step 1: clean out yum cache to reduce space requirements
-    yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y clean all
-
-    # step 2: figure out the new/changed files in ${vdir} vs. ${vref} and compute ${vdir}.changes
+    # step 1: figure out the new/changed files in ${vdir} vs. ${vref} and compute ${vdir}.changes
     rsync -anv ${vdir}/ ${vref}/ > ${vdir}.changes
     linecount=$(wc -l ${vdir}.changes | awk ' { print $1 } ')
     let headcount=$linecount-3
     let tailcount=$headcount-1
+    # get rid of the last 3 lines of the rsync output
     head -${headcount} ${vdir}.changes > ${vdir}.changes.1
-    tail -${tailcount} ${vdir}.changes.1 > ${vdir}.changes
-    rm -f ${vdir}.changes.1
+    # get rid of the first line of the rsync output
+    tail -${tailcount} ${vdir}.changes.1 > ${vdir}.changes.2
+    # post process rsync output to get rid of symbolic link embellish output
+    awk ' { print $1 } ' ${vdir}.changes.2 > ${vdir}.changes
+    rm -f ${vdir}.changes.*
+
+    # step 2: clean out yum cache to reduce space requirements
+    yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y clean all
 
     # step 3: create the ${vdir} with just the list given in ${vdir}.changes 
     install -d -m 755 ${vdir}-tmp/
