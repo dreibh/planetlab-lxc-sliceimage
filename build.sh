@@ -68,6 +68,8 @@ pl_setup_chroot ${vref} ${options}
 for systemvserver in reference-vservers/*.lst ; do
     NAME=$(basename $systemvserver .lst)
 
+    echo "--------START BUILDING system vserver ${NAME}: $(date)"
+
     # "Parse" out the packages and groups for yum
     systempackages=$(grep "^package:.*" $systemvserver | awk '{print $2}')
     systemgroups=$(grep "^group:.*" $systemvserver | awk '{print $2}')
@@ -111,7 +113,7 @@ for systemvserver in reference-vservers/*.lst ; do
     rm -rf ${vdir}
     rm -f  ${vdir}.changes
     mv ${vdir}-tmp ${vdir}
-
+    echo "--------DONE BUILDING system vserver ${NAME}: $(date)"
 done
 
 exit 0
