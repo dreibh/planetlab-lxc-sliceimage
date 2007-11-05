@@ -89,9 +89,13 @@ for systemvserver in reference-vservers/*.lst ; do
     [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y install $systempackages
     [ -n "$systemgroups" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y groupinstall $systemgroups
 
-    # Create a copy of the system vserver w/o the vserver reference files. This is a two step process:
+    # Create a copy of the system vserver w/o the vserver reference files and make it smaller. 
+    # This is a three step process:
 
-    # step 1: figure out the new/changed files in ${vdir} vs. ${vref} and compute ${vdir}.changes
+    # step 1: clean out yum cache to reduce space requirements
+    yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y clean all
+
+    # step 2: figure out the new/changed files in ${vdir} vs. ${vref} and compute ${vdir}.changes
     rsync -anv ${vdir}/ ${vref}/ > ${vdir}.changes
     linecount=$(wc -l ${vdir}.changes | awk ' { print $1 } ')
     let headcount=$linecount-3
@@ -100,13 +104,14 @@ for systemvserver in reference-vservers/*.lst ; do
     tail -${tailcount} ${vdir}.changes.1 > ${vdir}.changes
     rm -f ${vdir}.changes.1
 
-    # step 2: create the ${vdir} with just the list given in ${vdir}.changes 
+    # step 3: create the ${vdir} with just the list given in ${vdir}.changes 
     install -d -m 755 ${vdir}-tmp/
     rm -rf ${vdir}-tmp/*
-    (cd ${vdir} && cpio -l -m -d -u -p ${vdir}-tmp < ${vdir}.changes)
+    (cd ${vdir} && cpio -m -d -u -p ${vdir}-tmp < ${vdir}.changes)
     rm -rf ${vdir}
     rm -f  ${vdir}.changes
     mv ${vdir}-tmp ${vdir}
+
 done
 
 exit 0
