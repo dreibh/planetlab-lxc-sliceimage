@@ -53,10 +53,10 @@ vref=${vrefdir}/${vrefname}
 install -d -m 755 ${vref}
 
 # "Parse" out the packages and groups for mkfedora
-vrefpackages=$(grep "^package:.*" vserver-reference.lst | awk '{print $2}')
-vrefgroups=$(grep "^group:.*" vserver-reference.lst | awk '{print $2}')
 options=""
+vrefpackages=$(pl_getPackages base.lst)
 for package in ${vrefpackages} ; do  options="$options -p $package"; done
+vrefgroups=$(pl_getGroups base.lst)
 for group in ${vrefgroups} ; do options="$options -g $group"; done
 
 # Populate a minimal /dev in the reference image
@@ -79,8 +79,6 @@ for systemvserver in reference-vservers/*.lst ; do
     install -d -m 755 ${vdir}
 
     # Clone the base vserver reference to the system vserver reference
-
-       # OPTIMIZATION: Consider using "cp -al" in the future
     (cd ${vref} && find . | cpio -m -d -u -p ${vdir})
     rm -f ${vdir}/var/lib/rpm/__db*
 
