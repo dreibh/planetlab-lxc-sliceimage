@@ -54,9 +54,10 @@ install -d -m 755 ${vref}
 
 # "Parse" out the packages and groups for mkfedora
 options=""
-vrefpackages=$(pl_getPackages base.lst)
+lst="vserver-reference.lst"
+vrefpackages=$(pl_getPackages $lst)
+vrefgroups=$(pl_getGroups $lst)
 for package in ${vrefpackages} ; do  options="$options -p $package"; done
-vrefgroups=$(pl_getGroups base.lst)
 for group in ${vrefgroups} ; do options="$options -g $group"; done
 
 # Populate a minimal /dev in the reference image
@@ -71,8 +72,8 @@ for systemvserver in reference-vservers/*.lst ; do
     echo "--------START BUILDING system vserver ${NAME}: $(date)"
 
     # "Parse" out the packages and groups for yum
-    systempackages=$(grep "^package:.*" $systemvserver | awk '{print $2}')
-    systemgroups=$(grep "^group:.*" $systemvserver | awk '{print $2}')
+    systempackages=$(pl_getPackages $systemvserver)
+    systemgroups=$(pl_getGroups $systemvserver)
 
     vdir=${vstubdir}/${NAME}
     rm -rf ${vdir}/*
