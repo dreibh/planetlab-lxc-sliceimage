@@ -87,7 +87,8 @@ for systemvserver in reference-vservers/*.lst ; do
     echo ${vrefname} > ${vdir}.cloned
 
     # Install the system vserver specific packages
-    [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y install $systempackages
+    # xxx - thierry -adding disablerepo for closing the build loop - should be solved some other way
+    [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} --disablerepo=extras -y install $systempackages
     [ -n "$systemgroups" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y groupinstall $systemgroups
 
     # Create a copy of the system vserver w/o the vserver reference files and make it smaller. 
