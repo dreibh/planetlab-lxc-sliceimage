@@ -53,12 +53,8 @@ vref=${vrefdir}/${vrefname}
 install -d -m 755 ${vref}
 
 # "Parse" out the packages and groups for mkfedora
-options=""
 lst="vserver-reference.lst"
-vrefpackages=$(pl_getPackages $lst)
-vrefgroups=$(pl_getGroups $lst)
-for package in ${vrefpackages} ; do  options="$options -p $package"; done
-for group in ${vrefgroups} ; do options="$options -g $group"; done
+options="$(pl_getPackagesOptions $lst) $(pl_getGroupsOptions $lst)"
 
 # Populate a minimal /dev in the reference image
 pl_makedevs ${vref}
@@ -88,7 +84,10 @@ for systemvserver in reference-vservers/*.lst ; do
 
     # Install the system vserver specific packages
     # xxx - thierry -adding disablerepo for closing the build loop - should be solved some other way
-    [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} --disablerepo=extras -y install $systempackages
+    if [ "$pl_DISTRO_RELEASE" -le 6 ] ; then
+	xxx=--disablerepo=extras
+    fi
+    [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} $xxx -y install $systempackages
     [ -n "$systemgroups" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y groupinstall $systemgroups
 
     # Create a copy of the system vserver w/o the vserver reference files and make it smaller. 
