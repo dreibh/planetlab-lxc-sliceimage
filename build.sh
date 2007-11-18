@@ -60,7 +60,7 @@ options="$(pl_getPackagesOptions $lst) $(pl_getGroupsOptions $lst)"
 pl_makedevs ${vref}
 
 # Populate image with vserver-reference packages
-pl_setup_chroot ${vref} ${options}
+pl_setup_chroot ${vref} ${options} -k
 
 for systemvserver in reference-vservers/*.lst ; do
     NAME=$(basename $systemvserver .lst)
@@ -83,11 +83,7 @@ for systemvserver in reference-vservers/*.lst ; do
     echo ${vrefname} > ${vdir}.cloned
 
     # Install the system vserver specific packages
-    # xxx - thierry -adding disablerepo for closing the build loop - should be solved some other way
-    if [ "$pl_DISTRO_RELEASE" -le 6 ] ; then
-	xxx=--disablerepo=extras
-    fi
-    [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} $xxx -y install $systempackages
+    [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y install $systempackages
     [ -n "$systemgroups" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y groupinstall $systemgroups
 
     # Create a copy of the system vserver w/o the vserver reference files and make it smaller. 
