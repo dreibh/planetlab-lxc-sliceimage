@@ -72,8 +72,8 @@ for systemvserver in ${pldistro}-vservers/*.lst ; do
     echo "--------START BUILDING system vserver ${NAME}: $(date)"
 
     # "Parse" out the packages and groups for yum
-    systempackages=$(pl_getPackages $systemvserver)
-    systemgroups=$(pl_getGroups $systemvserver)
+    systempackages=$(pl_getPackages2 ${pl_DISTRO_NAME} $systemvserver)
+    systemgroups=$(pl_getGroups2 ${pl_DISTRO_NAME} $systemvserver)
 
     vdir=${vstubdir}/${NAME}
     rm -rf ${vdir}/*
