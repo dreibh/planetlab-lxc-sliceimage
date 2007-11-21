@@ -58,7 +58,7 @@ install -d -m 755 ${vref}
 
 # "Parse" out the packages and groups for mkfedora
 lst="${pldistro}-vserver.lst"
-options="$(pl_getPackagesOptions2 ${pl_DISTRO_NAME} $lst) $(pl_getGroupsOptions ${pl_DISTRO_NAME} $lst)"
+options="$(pl_getPackagesOptions2 ${pl_DISTRO_NAME} $lst) $(pl_getGroupsOptions2 ${pl_DISTRO_NAME} $lst)"
 
 # Populate a minimal /dev in the reference image
 pl_makedevs ${vref}
