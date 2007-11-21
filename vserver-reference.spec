@@ -47,7 +47,7 @@ resource") slices from the virtual server (VServer) reference image.
 
 %build
 pushd VserverReference
-./build.sh
+./build.sh %{pldistro}
 popd
 
 %install

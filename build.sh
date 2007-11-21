@@ -37,6 +37,10 @@ pl_process_fedora_options $@
 shiftcount=$?
 shift $shiftcount
 
+# pldistro expected as $1 - defaults to planetlab
+pldistro=planetlab
+[ -n "$@" ] && pldistro=$1
+
 # Do not tolerate errors
 set -e
 
@@ -53,8 +57,8 @@ vref=${vrefdir}/${vrefname}
 install -d -m 755 ${vref}
 
 # "Parse" out the packages and groups for mkfedora
-lst="vserver-reference.lst"
-options="$(pl_getPackagesOptions $lst) $(pl_getGroupsOptions $lst)"
+lst="${pldistro}-vserver.lst"
+options="$(pl_getPackagesOptions2 ${pl_DISTRO_NAME} $lst) $(pl_getGroupsOptions ${pl_DISTRO_NAME} $lst)"
 
 # Populate a minimal /dev in the reference image
 pl_makedevs ${vref}
@@ -62,7 +66,7 @@ pl_makedevs ${vref}
 # Populate image with vserver-reference packages
 pl_setup_chroot ${vref} ${options} -k
 
-for systemvserver in reference-vservers/*.lst ; do
+for systemvserver in ${pldistro}-vservers/*.lst ; do
     NAME=$(basename $systemvserver .lst)
 
     echo "--------START BUILDING system vserver ${NAME}: $(date)"
