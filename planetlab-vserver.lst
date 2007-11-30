@@ -25,6 +25,5 @@ package: gzip
 package: perl
 package: python
 package: tar
-package: jre
 package: findutils
 package: filesystem
