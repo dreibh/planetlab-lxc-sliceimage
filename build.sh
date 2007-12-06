@@ -57,23 +57,22 @@ vref=${vrefdir}/${vrefname}
 install -d -m 755 ${vref}
 
 # "Parse" out the packages and groups for mkfedora
-lst="${pldistro}-vserver.lst"
-options="$(pl_getPackagesOptions2 ${pl_DISTRO_NAME} $lst) $(pl_getGroupsOptions2 ${pl_DISTRO_NAME} $lst)"
+pkgsfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver.pkgs)
 
 # Populate a minimal /dev in the reference image
 pl_makedevs ${vref}
 
 # Populate image with vserver-reference packages
-pl_setup_chroot ${vref} ${options} -k
+pl_setup_chroot ${vref} -k -f $pkgsfile
 
-for systemvserver in ${pldistro}-vservers/*.lst ; do
-    NAME=$(basename $systemvserver .lst)
+for systemvserver in ../build/config.${pldistro}/vserver-*.pkgs ; do
+    NAME=$(basename $systemvserver .pkgs | sed -e s,vserver-,,)
 
     echo "--------START BUILDING system vserver ${NAME}: $(date)"
 
     # "Parse" out the packages and groups for yum
-    systempackages=$(pl_getPackages2 ${pl_DISTRO_NAME} $systemvserver)
-    systemgroups=$(pl_getGroups2 ${pl_DISTRO_NAME} $systemvserver)
+    systempackages=$(pl_getPackages ${pl_DISTRO_NAME} $systemvserver)
+    systemgroups=$(pl_getGroups ${pl_DISTRO_NAME} $systemvserver)
 
     vdir=${vstubdir}/${NAME}
     rm -rf ${vdir}/*
