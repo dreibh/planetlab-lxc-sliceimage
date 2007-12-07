@@ -56,14 +56,11 @@ vrefname=default
 vref=${vrefdir}/${vrefname}
 install -d -m 755 ${vref}
 
-# "Parse" out the packages and groups for mkfedora
+# locate the packages and groups file
 pkgsfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver.pkgs)
 
-# Populate a minimal /dev in the reference image
-pl_makedevs ${vref}
-
 # Populate image with vserver-reference packages
-pl_setup_chroot ${vref} -k -f $pkgsfile
+pl_root_setup_chroot ${vref} -k -f $pkgsfile
 
 for systemvserver in ../build/config.${pldistro}/vserver-*.pkgs ; do
     NAME=$(basename $systemvserver .pkgs | sed -e s,vserver-,,)
