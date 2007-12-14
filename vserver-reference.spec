@@ -15,8 +15,6 @@ Source0: %{name}-%{version}.tar.bz2
 License: GPL
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-Requires: util-vserver, e2fsprogs, yum
-Requires(pre): coreutils
 
 %define debug_package %{nil}
 
@@ -27,6 +25,8 @@ This package does not really exist.
 Summary: VServer reference image
 Group: Applications/System
 AutoReqProv: no
+Requires: util-vserver, e2fsprogs, yum
+Requires(pre): /bin/sh, coreutils
 
 %description reference
 This package creates the virtual server (VServer) reference image used
