@@ -59,6 +59,11 @@ install -d -m 755 ${vref}
 # locate the packages and groups file
 pkgsfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver.pkgs)
 
+# Some of the PlanetLab RPMs attempt to (re)start themselves in %post,
+# unless the installation is running inside the BootCD environment. We
+# would like to pretend that we are.
+export PL_BOOTCD=1
+
 # Populate image with vserver-reference packages
 pl_root_setup_chroot ${vref} -k -f $pkgsfile
 
