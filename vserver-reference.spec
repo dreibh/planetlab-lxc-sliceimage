@@ -1,11 +1,13 @@
+#
+# $Id$
+#
+%define url $URL$
+
 %define name vserver
 %define version 4.2
-%define release 0%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define taglevel 0
 
-Vendor: PlanetLab
-Packager: PlanetLab Central <support@planet-lab.org>
-Distribution: PlanetLab 4.0
-URL: https://svn.planet-lab.org/svn/VserverReference/
+%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 Summary: VServer reference image
 Name: %{name}
@@ -15,6 +17,11 @@ Source0: %{name}-%{version}.tar.bz2
 License: GPL
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+
+Vendor: PlanetLab
+Packager: PlanetLab Central <support@planet-lab.org>
+Distribution: PlanetLab %{plrelease}
+URL: %(echo %{url} | cut -d ' ' -f 2)
 
 %define debug_package %{nil}
 
