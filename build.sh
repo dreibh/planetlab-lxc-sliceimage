@@ -67,7 +67,8 @@ export PL_BOOTCD=1
 # Populate image with vserver-reference packages
 pl_root_setup_chroot ${vref} -k -f $pkgsfile
 
-for systemvserver in ../build/config.${pldistro}/vserver-*.pkgs ; do
+systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null | wc -l)
+[ $systemvserver_count -gt 0 ] && for systemvserver in $(ls ../build/config.${pldistro}/vserver-*.pkgs) ; do
     NAME=$(basename $systemvserver .pkgs | sed -e s,vserver-,,)
 
     echo "--------START BUILDING system vserver ${NAME}: $(date)"
