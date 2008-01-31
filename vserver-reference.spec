@@ -5,7 +5,7 @@
 
 %define name vserver
 %define version 4.2
-%define taglevel 0
+%define taglevel 1
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -124,6 +124,9 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Thu Jan 31 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - vserver-4.2-0 vserver-4.2-1
+- more careful scan of the vserver-*.pkgs image specifications
+
 * Tue Sep  1 2005 Mark Huang <mlhuang@cs.princeton.edu> 3.1-1.planetlab
 - Pre-package vserver-reference instead of building it on nodes
 
