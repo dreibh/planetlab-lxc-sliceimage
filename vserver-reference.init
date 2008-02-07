@@ -55,6 +55,10 @@ shopt -s nullglob
 chmod 0000 "$__DEFAULT_VSERVERDIR"
 setattr --barrier "$__DEFAULT_VSERVERDIR"
 
+# Set the attribute to unlink so vclone does the right thing wrt to 
+# conserving space by linking and not copying unified files.
+find "$__DEFAULT_VSERVERDIR/.vref/default" -type f -print0 | xargs -0 setattr --iunlink
+
 # Build reference images for system slices
 for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*.cloned ; do
     NAME=$(basename $systemvserver .cloned)
