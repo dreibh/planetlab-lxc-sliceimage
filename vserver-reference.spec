@@ -5,7 +5,7 @@
 
 %define name vserver
 %define version 4.2
-%define taglevel 1
+%define taglevel 2
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -124,6 +124,9 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Fri Feb 15 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - vserver-4.2-1 vserver-4.2-2
+- vserver image to properly use links rather than copies
+
 * Thu Jan 31 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - vserver-4.2-0 vserver-4.2-1
 - more careful scan of the vserver-*.pkgs image specifications
 
