@@ -92,8 +92,10 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
     [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y install $systempackages
     [ -n "$systemgroups" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y groupinstall $systemgroups
 
-    postfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver.post)
-    [ "$postfile" != "not-found-by-pl_locateDistroFile" ] && /bin/bash $postfile ${vdir} || :
+	pkgsdir=$(dirname $pkgsfile)
+	pkgsname=$(basename $pkgsfile .pkgs)
+	postfile="${pkgsdir}/${pkgsname}.post"
+	[ -f $postfile ] && /bin/bash $postfile ${vdir} || :
 
     # Create a copy of the system vserver w/o the vserver reference files and make it smaller. 
     # This is a three step process:
