@@ -103,7 +103,7 @@ echo -n $"Updating VServer reference images: " >&3 2>&4
 VROOTS="$__DEFAULT_VSERVERDIR/.vref/* $__DEFAULT_VSERVERDIR/.vcache/* $__DEFAULT_VSERVERDIR/${PLC_SLICE_PREFIX}_*"
 
 # Copy configuration files from host to slices
-for file in /etc/hosts /etc/resolv.conf /etc/yum.conf /etc/planetlab/node_id \
+for file in /etc/hosts /etc/resolv.conf /etc/planetlab/node_id \
             /etc/planetlab/plc_config* /etc/planetlab/php/* \
             /etc/pki/rpm-gpg/* ; do
     if [ -r $file ] ; then
