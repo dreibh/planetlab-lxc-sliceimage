@@ -103,7 +103,7 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
     # step 1: clean out yum cache to reduce space requirements
     yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y clean all
 
-    [ -f ${vdir}/etc/yum.conf.rpmnew ] && mv ${vdir}/etc/yum.conf.rpmnew ${vdir}/etc/yum.conf
+    [ -f ${vdir}/etc/yum.conf.rpmnew ] && mv -f ${vdir}/etc/yum.conf.rpmnew ${vdir}/etc/yum.conf
 
     # step 2: figure out the new/changed files in ${vdir} vs. ${vref} and compute ${vdir}.changes
     rsync -anv ${vdir}/ ${vref}/ > ${vdir}.changes
@@ -129,6 +129,6 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
 done
 
 # switch the vserver reference /etc/yum.conf to the new one from the yum package
-[ -f ${vref}/etc/yum.conf.rpmnew ] && mv ${vref}/etc/yum.conf.rpmnew ${vref}/etc/yum.conf
+[ -f ${vref}/etc/yum.conf.rpmnew ] && mv -f ${vref}/etc/yum.conf.rpmnew ${vref}/etc/yum.conf
 
 exit 0
