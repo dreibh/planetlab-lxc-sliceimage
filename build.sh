@@ -128,6 +128,11 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
     echo "--------DONE BUILDING system vserver ${NAME}: $(date)"
 done
 
+pkgsdir=$(dirname $pkgsfile)
+pkgsname=$(basename $pkgsfile .pkgs)
+postfile="${pkgsdir}/${pkgsname}.post"
+[ -f $postfile ] && /bin/bash $postfile ${vref} || :
+
 # switch the vserver reference /etc/yum.conf to the new one from the yum package
 [ -f ${vref}/etc/yum.conf.rpmnew ] && mv -f ${vref}/etc/yum.conf.rpmnew ${vref}/etc/yum.conf
 
