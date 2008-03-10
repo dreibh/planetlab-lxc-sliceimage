@@ -38,8 +38,7 @@ shiftcount=$?
 shift $shiftcount
 
 # pldistro expected as $1 - defaults to planetlab
-pldistro=planetlab
-[ -n "$@" ] && pldistro=$1
+pldistro=$1 ; shift
 
 # Do not tolerate errors
 set -e
@@ -56,16 +55,17 @@ vrefname=default
 vref=${vrefdir}/${vrefname}
 install -d -m 755 ${vref}
 
-# locate the packages and groups file
-pkgsfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver.pkgs)
-
 # Some of the PlanetLab RPMs attempt to (re)start themselves in %post,
 # unless the installation is running inside the BootCD environment. We
 # would like to pretend that we are.
 export PL_BOOTCD=1
 
 # Populate image with vserver-reference packages
-pl_root_setup_chroot ${vref} -k -f $pkgsfile
+pl_root_makedevs ${vref}
+# locate the packages and groups file
+pkgsfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver.pkgs)
+pl_root_mkfedora ${vref} ${pldistro} $pkgsfile
+pl_root_tune_image ${vref}
 
 systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null | wc -l)
 [ $systemvserver_count -gt 0 ] && for systemvserver in $(ls ../build/config.${pldistro}/vserver-*.pkgs) ; do
@@ -74,8 +74,8 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
     echo "--------START BUILDING system vserver ${NAME}: $(date)"
 
     # "Parse" out the packages and groups for yum
-    systempackages=$(pl_getPackages ${pl_DISTRO_NAME} $systemvserver)
-    systemgroups=$(pl_getGroups ${pl_DISTRO_NAME} $systemvserver)
+    systempackages=$(pl_getPackages ${pl_DISTRO_NAME} $pldistro $systemvserver)
+    systemgroups=$(pl_getGroups ${pl_DISTRO_NAME} $pldistro $systemvserver)
 
     vdir=${vstubdir}/${NAME}
     rm -rf ${vdir}/*
