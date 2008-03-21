@@ -57,11 +57,13 @@ setattr --barrier "$__DEFAULT_VSERVERDIR"
 
 # Set the attribute to unlink so vclone does the right thing wrt to 
 # conserving space by linking and not copying unified files.
-find "$__DEFAULT_VSERVERDIR/.vref/default" -type f -print0 | xargs -0 setattr --iunlink
+find "$__DEFAULT_VSERVERDIR/.vref/*" -type f -print0 | xargs -0 setattr --iunlink
 
 # Build reference images for system slices
-for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*.cloned ; do
+# xxx if several instances of systemslices get installed, only one gets instanciated
+for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
     NAME=$(basename $systemvserver .cloned)
+    DIR=$(dirname $systemvserver)
 
     # Copy base reference image
     if [ ! -d "$__DEFAULT_VSERVERDIR/.vref/$NAME" ] ; then
@@ -75,12 +77,16 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*.cloned ; do
 	# build the systemvserver from the one it was originally cloned from
 	TYPE=$(cat $systemvserver)
 	REF="$__DEFAULT_VSERVERDIR/.vref/$TYPE"
-	"$_VCLONE" "$REF"/ "$TMP"/
-	RETVAL=$?
+	if [ -d "$REF" ] ; then
+	    "$_VCLONE" "$REF"/ "$TMP"/
+	    RETVAL=$?
+	else
+	    RETVAL=1
+	fi
 
 	# merge the stub with the reference to get the system vserver
  	if [ $RETVAL -eq 0 ] ; then
-	    (cd "$__DEFAULT_VSERVERDIR/.vstub/$NAME"/ && find . | cpio -m -d -u -p "$TMP"/)
+	    (cd "$DIR/$NAME"/ && find . | cpio -m -d -u -p "$TMP"/)
 	    RETVAL=$?
 	fi
 
@@ -92,6 +98,7 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*.cloned ; do
 	    mv "$TMP" "$__DEFAULT_VSERVERDIR/.vref/$NAME"
 	    success >&3 2>&4
 	else
+	    rm -rf "$TMP"
 	    failure >&3 2>&4
 	fi
 	echo >&3 2>&4

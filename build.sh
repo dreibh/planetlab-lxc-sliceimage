@@ -37,22 +37,21 @@ pl_process_fedora_options $@
 shiftcount=$?
 shift $shiftcount
 
-# pldistro expected as $1 - defaults to planetlab
+# pldistro expected as $1 
 pldistro=$1 ; shift
+# The vserver reference name - this comes from spec's slicefamily
+vrefname=$1; shift
 
 # Do not tolerate errors
 set -e
 
 # Path's to the vserver references images and stubs
 vrefdir=$PWD/vservers/.vref
-vstubdir=$PWD/vservers/.vstub
-
-# XXX: The vserver reference name should be passed in as an argument
-# rather than being hardcoded.
-vrefname=default
+vref=${vrefdir}/${vrefname}
+# stubs are created in a subdir per slicefamily
+vstubdir=$PWD/vservers/.vstub/${vrefname}
 
 # Make /vservers and default vserver reference image
-vref=${vrefdir}/${vrefname}
 install -d -m 755 ${vref}
 
 # Some of the PlanetLab RPMs attempt to (re)start themselves in %post,

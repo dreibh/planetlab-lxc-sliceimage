@@ -3,13 +3,17 @@
 #
 %define url $URL$
 
+%define slicefamily %{pldistro}-%{distroname}-%{_arch}
+
 %define name vserver
 %define version 4.2
 %define taglevel 2
 
-%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+# pldistro already in the rpm name
+#%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define release %{taglevel}%{?date:.%{date}}
 
-Summary: VServer reference image
+Summary: VServer reference image for slice family %{slicefamily}
 Name: %{name}
 Version: %{version}
 Release: %{release}
@@ -28,24 +32,24 @@ URL: %(echo %{url} | cut -d ' ' -f 2)
 %description
 This package does not really exist.
 
-%package reference
+%package %{slicefamily}
 Summary: VServer reference image
 Group: Applications/System
 AutoReqProv: no
 Requires: util-vserver, e2fsprogs, yum
 Requires(pre): /bin/sh, coreutils
 
-%description reference
+%description %{slicefamily}
 This package creates the virtual server (VServer) reference image used
 as the installation base for new PlanetLab slivers.
 
-%package system-packages
+%package systemslices-%{slicefamily}
 Summary: System slice packages
 Group: Applications/System
-Requires: vserver-reference >= %{version}-%{release}
+Requires: vserver-%{slicefamily} >= %{version}-%{release}
 AutoReqProv: no
 
-%description system-packages
+%description systemslices-%{slicefamily}
 This package installs the RPMS necessary to create system ("root
 resource") slices from the virtual server (VServer) reference image.
 
@@ -54,7 +58,7 @@ resource") slices from the virtual server (VServer) reference image.
 
 %build
 pushd VserverReference
-./build.sh %{pldistro}
+./build.sh %{pldistro} %{slicefamily}
 popd
 
 %install
@@ -81,20 +85,20 @@ if [ -n "$SUDO_USER" ] ; then
     chown -h -R $SUDO_USER %{_rpmdir}/%{_arch}
 fi
 
-%files reference
+%files %{slicefamily}
 %defattr(-,root,root)
 %{_initrddir}/vserver-reference
 %{_sysconfdir}/cron.d/vserver-reference
 %{_sysconfdir}/logrotate.d/vserver-reference
-/vservers/.vref/default
+/vservers/.vref/%{slicefamily}
 
-%files system-packages
+%files systemslices-%{slicefamily}
 %defattr(-,root,root)
 /vservers/.vstub
 
 %define vcached_pid /var/run/vcached.pid
 
-%pre reference
+%pre %{slicefamily}
 # Stop vcached
 if [ -r %{vcached_pid} ] ; then
     kill $(cat %{vcached_pid})
@@ -113,9 +117,11 @@ fi
 # Allow vcached to run again
 rm -f %{vcached_pid}
 
-%post reference
+%post %{slicefamily}
 chkconfig --add vserver-reference
 chkconfig vserver-reference on
+# store the default for nodemanager
+[ -f /etc/planetlab/defaultvref ] || echo %{slicefamily} > /etc/planetlab/defaultvref
 [ "$PL_BOOTCD" = "1" ] || service vserver-reference start
 
 # Randomize daily run time
