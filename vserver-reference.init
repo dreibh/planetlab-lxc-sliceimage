@@ -57,7 +57,7 @@ setattr --barrier "$__DEFAULT_VSERVERDIR"
 
 # Set the attribute to unlink so vclone does the right thing wrt to 
 # conserving space by linking and not copying unified files.
-find "$__DEFAULT_VSERVERDIR/.vref/*" -type f -print0 | xargs -0 setattr --iunlink
+find "$__DEFAULT_VSERVERDIR/.vref"/* -type f -print0 | xargs -0 setattr --iunlink
 
 # Build reference images for system slices
 # xxx if several instances of systemslices get installed, only one gets instanciated
