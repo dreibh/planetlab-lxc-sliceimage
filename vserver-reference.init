@@ -63,10 +63,10 @@ if [ -f /proc/virtual/info ] ; then
 	y=$[ (x >> 9) & 1]
 	if test "$y" = 1 ; then 
 		# COW support
-		find "$__DEFAULT_VSERVERDIR/.vref/default" -type f -print0 | xargs -0 setattr --iunlink
+		find "$__DEFAULT_VSERVERDIR/.vref"/* -type f -print0 | xargs -0 setattr --iunlink
 	else 
 		# no COW; 
-		find "$__DEFAULT_VSERVERDIR/.vref/default" -type f -print0 | xargs -0 setattr --~iunlink
+		find "$__DEFAULT_VSERVERDIR/.vref"/* -type f -print0 | xargs -0 setattr --~iunlink
 	fi
 fi
 
