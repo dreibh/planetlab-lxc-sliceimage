@@ -121,7 +121,7 @@ rm -f %{vcached_pid}
 chkconfig --add vserver-reference
 chkconfig vserver-reference on
 # store the default for nodemanager
-[ -f /etc/planetlab/defaultvref ] || echo %{slicefamily} > /etc/planetlab/defaultvref
+[ -f /etc/planetlab/slicefamily ] || echo %{slicefamily} > /etc/planetlab/slicefamily
 [ "$PL_BOOTCD" = "1" ] || service vserver-reference start
 
 # Randomize daily run time

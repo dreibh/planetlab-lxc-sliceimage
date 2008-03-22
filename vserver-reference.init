@@ -74,12 +74,19 @@ fi
 # Build reference images for system slices
 # xxx if several instances of systemslices get installed, only one gets instanciated
 for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
+    # e.g. NAME=planetflow
     NAME=$(basename $systemvserver .cloned)
     DIR=$(dirname $systemvserver)
+    # e.g. SLICEFAMILY=planetlab-f8-i386
+    SLICEFAMILY=$(cat $systemvserver)
+    # deduce the actual name used in .vref by replacing the first part of slice-family 
+    # (pldistro) with the slice name
+    # e.g. VREFNAME=planetflow-f8-i386
+    VREFNAME=$(echo $SLICEFAMILY | sed -e "s,^[^-]*-,$NAME-,")
 
     # Copy base reference image
-    if [ ! -d "$__DEFAULT_VSERVERDIR/.vref/$NAME" ] ; then
-	echo -n $"Building VServer reference image for $NAME: " >&3 2>&4
+    if [ ! -d "$__DEFAULT_VSERVERDIR/.vref/$VREFNAME" ] ; then
+	echo -n $"Building VServer reference image for $NAME in $VREFNAME: " >&3 2>&4
 
 	# Build in temporary directory
 	mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
@@ -87,8 +94,7 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
 	mkdir -p "$__DEFAULT_VSERVERDIR/.vref"
 
 	# build the systemvserver from the one it was originally cloned from
-	TYPE=$(cat $systemvserver)
-	REF="$__DEFAULT_VSERVERDIR/.vref/$TYPE"
+	REF="$__DEFAULT_VSERVERDIR/.vref/$SLICEFAMILY"
 	if [ -d "$REF" ] ; then
 	    "$_VCLONE" "$REF"/ "$TMP"/
 	    RETVAL=$?
@@ -107,7 +113,7 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
 
 	# Move it to its permanent location when complete
  	if [ $RETVAL -eq 0 ] ; then
-	    mv "$TMP" "$__DEFAULT_VSERVERDIR/.vref/$NAME"
+	    mv "$TMP" "$__DEFAULT_VSERVERDIR/.vref/$VREFNAME"
 	    success >&3 2>&4
 	else
 	    rm -rf "$TMP"
