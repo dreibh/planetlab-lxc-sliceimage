@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 4.2
-%define taglevel 2
+%define taglevel 3
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -130,6 +130,12 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Wed Mar 26 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-4.2-2 VserverReference-4.2-3
+- a single node can now install several instances of this package
+- package name contains slicefamily - <pldistro>-<fcdistro>-<arch>
+- setattr --iunlink or --~iunlink appropriately (uses /proc/virtual/info)
+- does not copy yum.conf from host anymore
+
 * Fri Feb 15 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - vserver-4.2-1 vserver-4.2-2
 - vserver image to properly use links rather than copies
 
