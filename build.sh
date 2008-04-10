@@ -135,4 +135,7 @@ postfile="${pkgsdir}/${pkgsname}.post"
 # switch the vserver reference /etc/yum.conf to the new one from the yum package
 [ -f ${vref}/etc/yum.conf.rpmnew ] && mv -f ${vref}/etc/yum.conf.rpmnew ${vref}/etc/yum.conf
 
+# fix sudoers config
+[ -f ${vref}/etc/sudoers ] && echo -e "\nDefaults\tlogfile=/var/log/sudo\n" >> ${vref}/etc/sudoers
+
 exit 0
