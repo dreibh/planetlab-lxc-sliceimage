@@ -37,7 +37,6 @@ Summary: VServer reference image
 Group: Applications/System
 AutoReqProv: no
 Requires: util-vserver, e2fsprogs, yum
-Requires(pre): /bin/sh, coreutils
 
 %description %{slicefamily}
 This package creates the virtual server (VServer) reference image used
@@ -49,9 +48,9 @@ Group: Applications/System
 Requires: vserver-%{slicefamily} >= %{version}-%{release}
 AutoReqProv: no
 
-%description systemslices-%{slicefamily}
-This package installs the RPMS necessary to create system ("root
-resource") slices from the virtual server (VServer) reference image.
+%description systemslices-%{slicefamily} 
+This package installs the stubs necessary to create system slices
+(typically planetflow) on top of the reference image.
 
 %prep
 %setup -q
@@ -94,28 +93,15 @@ fi
 
 %files systemslices-%{slicefamily}
 %defattr(-,root,root)
-/vservers/.vstub
+/vservers/.vstub/%{slicefamily}
 
 %define vcached_pid /var/run/vcached.pid
 
 %pre %{slicefamily}
-# Stop vcached
-if [ -r %{vcached_pid} ] ; then
-    kill $(cat %{vcached_pid})
-fi
-echo $$ > %{vcached_pid}
+rm -rf /vservers/.vref/%{slicefamily}
 
-# vcached will clean up .vtmp later
-mkdir -p /vservers/.vtmp
-if [ -d /vservers/.vref ] ; then
-    mv /vservers/.vref /vservers/.vtmp/.vref.$RANDOM
-fi
-if [ -d /vservers/.vcache ] ; then
-    mv /vservers/.vcache /vservers/.vtmp/.vcache.$RANDOM
-fi
-
-# Allow vcached to run again
-rm -f %{vcached_pid}
+%pre systemslices-%{slicefamily}
+rm -rf /vservers/.vstub/%{slicefamily}
 
 %post %{slicefamily}
 chkconfig --add vserver-reference

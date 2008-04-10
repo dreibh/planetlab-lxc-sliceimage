@@ -40,16 +40,16 @@ shift $shiftcount
 # pldistro expected as $1 
 pldistro=$1 ; shift
 # The vserver reference name - this comes from spec's slicefamily
-vrefname=$1; shift
+slicefamily=$1; shift
 
 # Do not tolerate errors
 set -e
 
 # Path's to the vserver references images and stubs
 vrefdir=$PWD/vservers/.vref
-vref=${vrefdir}/${vrefname}
+vref=${vrefdir}/${slicefamily}
 # stubs are created in a subdir per slicefamily
-vstubdir=$PWD/vservers/.vstub/${vrefname}
+vstubdir=$PWD/vservers/.vstub/${slicefamily}
 
 # Make /vservers and default vserver reference image
 install -d -m 755 ${vref}
@@ -85,7 +85,7 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
     rm -f ${vdir}/var/lib/rpm/__db*
 
     # Communicate to the initialization script from which vref this stub was cloned
-    echo ${vrefname} > ${vdir}.cloned
+    echo ${slicefamily} > ${vdir}.cloned
 
     # Install the system vserver specific packages
     [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y install $systempackages
