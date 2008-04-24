@@ -21,6 +21,8 @@ Source0: %{name}-%{version}.tar.bz2
 License: GPL
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+# other archs must be able to install this
+BuildArch: noarch
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
