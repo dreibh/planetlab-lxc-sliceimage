@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 4.2
-%define taglevel 5
+%define taglevel 6
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -118,6 +118,9 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Thu Apr 24 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-4.2-6
+- empty change, this should *not* be a noarch package
+
 * Mon Apr 21 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-4.2-5
 - tweaked pre script that was removing everything under /vservers/.vref
 - dismantle vcached (as far as this module is concerned)
