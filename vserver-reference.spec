@@ -99,12 +99,6 @@ fi
 
 %define vcached_pid /var/run/vcached.pid
 
-%pre %{slicefamily}
-rm -rf /vservers/.vref/%{slicefamily}
-
-%pre systemslices-%{slicefamily}
-rm -rf /vservers/.vstub/%{slicefamily}
-
 %post %{slicefamily}
 chkconfig --add vserver-reference
 chkconfig vserver-reference on
