@@ -39,6 +39,7 @@ Summary: VServer reference image
 Group: Applications/System
 AutoReqProv: no
 Requires: util-vserver, e2fsprogs, yum
+Requires(pre): util-vserver-core, findutils
 
 %description %{slicefamily}
 This package creates the virtual server (VServer) reference image used
@@ -98,6 +99,11 @@ fi
 /vservers/.vstub/%{slicefamily}
 
 %define vcached_pid /var/run/vcached.pid
+
+# XXX: UGLY HACK
+%pre %{slicefamily}
+test -d /vservers/.vref/%{slicefamily} && \
+   find /vservers/.vref/%{slicefamily} -print0 | xargs -0 setattr --~iunlink
 
 %post %{slicefamily}
 chkconfig --add vserver-reference
