@@ -104,6 +104,7 @@ fi
 %pre %{slicefamily}
 test -d /vservers/.vref/%{slicefamily} && \
    find /vservers/.vref/%{slicefamily} -print0 | xargs -0 setattr --~iunlink
+:
 
 %post %{slicefamily}
 chkconfig --add vserver-reference
