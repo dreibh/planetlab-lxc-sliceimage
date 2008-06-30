@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 4.2
-%define taglevel 8
+%define taglevel 9
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -119,6 +119,9 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Mon Jun 30 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - VserverReference-4.2-9
+- Scriptlet fix.
+
 * Fri Jun 27 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - VserverReference-4.2-8
 - Unset the immutable and iunlink bits to make sure we can install the package.
 
