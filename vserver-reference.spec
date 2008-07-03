@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 4.2
-%define taglevel 9
+%define taglevel 10
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -119,6 +119,9 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Thu Jul 03 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - VserverReference-4.2-10
+- Use the correct yum.conf to get access to required packages such as pf2slice.
+
 * Mon Jun 30 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - VserverReference-4.2-9
 - Scriptlet fix.
 
