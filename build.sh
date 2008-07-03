@@ -88,8 +88,8 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
     echo ${slicefamily} > ${vdir}.cloned
 
     # Install the system vserver specific packages
-    [ -n "$systempackages" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y install $systempackages
-    [ -n "$systemgroups" ] && yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y groupinstall $systemgroups
+    [ -n "$systempackages" ] && yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y install $systempackages
+    [ -n "$systemgroups" ] && yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y groupinstall $systemgroups
 
     pkgsdir=$(dirname $pkgsfile)
     pkgsname=$(basename $pkgsfile .pkgs)
@@ -100,9 +100,7 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
     # This is a three step process:
 
     # step 1: clean out yum cache to reduce space requirements
-    yum -c ${vdir}/etc/yum.conf --installroot=${vdir} -y clean all
-
-    [ -f ${vdir}/etc/yum.conf.rpmnew ] && mv -f ${vdir}/etc/yum.conf.rpmnew ${vdir}/etc/yum.conf
+    yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y clean all
 
     # step 2: figure out the new/changed files in ${vdir} vs. ${vref} and compute ${vdir}.changes
     rsync -anv ${vdir}/ ${vref}/ > ${vdir}.changes
@@ -131,9 +129,6 @@ pkgsdir=$(dirname $pkgsfile)
 pkgsname=$(basename $pkgsfile .pkgs)
 postfile="${pkgsdir}/${pkgsname}.post"
 [ -f $postfile ] && /bin/bash $postfile ${vref} || :
-
-# switch the vserver reference /etc/yum.conf to the new one from the yum package
-[ -f ${vref}/etc/yum.conf.rpmnew ] && mv -f ${vref}/etc/yum.conf.rpmnew ${vref}/etc/yum.conf
 
 # fix sudoers config
 [ -f ${vref}/etc/sudoers ] && echo -e "\nDefaults\tlogfile=/var/log/sudo\n" >> ${vref}/etc/sudoers
