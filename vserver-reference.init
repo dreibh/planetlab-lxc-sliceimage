@@ -28,7 +28,11 @@ esac
 . /etc/init.d/functions
 
 # VServer definitions
-. /usr/lib/util-vserver/util-vserver-vars
+init_paths="/usr/lib64/util-vserver/util-vserver-vars /usr/lib/util-vserver/util-vserver-vars"
+for init_path in $init_paths ; do
+    [ -f $init_path ] && { source $init_path ; break; }
+done
+[ "$PACKAGE_NAME" = "util-vserver" ] || echo "WARNING: could not find util-vserver init file among $init_paths"
 
 # Save stdout and stderr
 exec 3>&1
