@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 4.2
-%define taglevel 10
+%define taglevel 11
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -119,6 +119,9 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Thu Oct 02 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-4.2-11
+- on 64bits archs, locates util-vserver's config file correctly
+
 * Thu Jul 03 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - VserverReference-4.2-10
 - Use the correct yum.conf to get access to required packages such as pf2slice.
 
