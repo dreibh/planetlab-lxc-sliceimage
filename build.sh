@@ -53,6 +53,8 @@ vstubdir=$PWD/vservers/.vstub/${slicefamily}
 
 # Make /vservers and default vserver reference image
 install -d -m 755 ${vref}
+# needed for pldistros that don't have any system vserver images
+install -d -m 755 ${vstubdir}
 
 # Some of the PlanetLab RPMs attempt to (re)start themselves in %post,
 # unless the installation is running inside the BootCD environment. We
