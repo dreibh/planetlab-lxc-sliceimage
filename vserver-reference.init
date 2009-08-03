@@ -142,8 +142,12 @@ for file in /etc/hosts /etc/resolv.conf /etc/planetlab/node_id \
     fi
 done
 
-# Remove stale RPM locks
-rm -f $vroot/var/lib/rpm/__db*
+
+for vroot in $VROOTS ; do
+    # NOTE: without this step, the 'rpm --allmatches' step can hang on boot
+    # Remove stale RPM locks from all VROOT dirs
+    rm -f $vroot/var/lib/rpm/__db*
+done
 
 # (Re)install GPG signing keys
 if [ -d /etc/pki/rpm-gpg ] ; then
