@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 4.2
-%define taglevel 12
+%define taglevel 13
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -119,6 +119,9 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Mon Aug 10 2009 Stephen Soltesz <soltesz@cs.princeton.edu> - VserverReference-4.2-13
+- Added remove for all VROOTs rather than the last one.  BUG FIX.
+
 * Tue Mar 24 2009 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-4.2-12
 - fix for fedora 10
 
