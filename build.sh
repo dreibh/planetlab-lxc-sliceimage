@@ -91,7 +91,10 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
 
     # Install the system vserver specific packages
     [ -n "$systempackages" ] && yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y install $systempackages
-    [ -n "$systemgroups" ] && yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y groupinstall $systemgroups
+    for group_plus in $systemgroups; do
+	group=$(echo $group_plus | sed -e "s,+++, ,g")
+        yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y groupinstall "$group"
+    done
 
     pkgsdir=$(dirname $pkgsfile)
     pkgsname=$(basename $pkgsfile .pkgs)
