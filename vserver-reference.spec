@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 4.2
-%define taglevel 14
+%define taglevel 15
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -119,6 +119,9 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Mon Oct 19 2009 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - VserverReference-4.2-15
+- - comment out requiretty
+
 * Fri Oct 09 2009 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-4.2-14
 - can use groups in the pkgs file with +++ for space
 
