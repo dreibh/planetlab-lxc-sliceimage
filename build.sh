@@ -137,5 +137,6 @@ postfile="${pkgsdir}/${pkgsname}.post"
 
 # fix sudoers config
 [ -f ${vref}/etc/sudoers ] && echo -e "\nDefaults\tlogfile=/var/log/sudo\n" >> ${vref}/etc/sudoers
+[ -f ${vref}/etc/sudoers ] && sed -i 's,^Defaults.*requiretty,#Defaults requiretty,' ${vref}/etc/sudoers
 
 exit 0
