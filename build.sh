@@ -96,9 +96,9 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
         yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y groupinstall "$group"
     done
 
-    pkgsdir=$(dirname $pkgsfile)
-    pkgsname=$(basename $pkgsfile .pkgs)
-    postfile=$(pl_locateDistroFile ../build/ ${pldistro} "${pkgsname}.post")
+    # search e.g. vserver-planetflow.post in config.<pldistro> or in config.planetlab otherwise
+    postfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver-${NAME}.post || : )
+
     [ -f $postfile ] && /bin/bash $postfile ${vdir} || :
 
     # Create a copy of the system vserver w/o the vserver reference files and make it smaller. 
@@ -130,9 +130,9 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
     echo "--------DONE BUILDING system vserver ${NAME}: $(date)"
 done
 
-pkgsdir=$(dirname $pkgsfile)
-pkgsname=$(basename $pkgsfile .pkgs)
-postfile=$(pl_locateDistroFile ../build/ ${pldistro} "${pkgsname}.post")
+# search vserver.post in config.<pldistro> or in config.planetlab otherwise
+postfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver.post)
+
 [ -f $postfile ] && /bin/bash $postfile ${vref} || :
 
 # fix sudoers config
