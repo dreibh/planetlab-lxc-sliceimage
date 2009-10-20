@@ -98,7 +98,7 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
 
     pkgsdir=$(dirname $pkgsfile)
     pkgsname=$(basename $pkgsfile .pkgs)
-    postfile="${pkgsdir}/${pkgsname}.post"
+    postfile=$(pl_locateDistroFile ../build/ ${pldistro} "${pkgsname}.post")
     [ -f $postfile ] && /bin/bash $postfile ${vdir} || :
 
     # Create a copy of the system vserver w/o the vserver reference files and make it smaller. 
@@ -132,11 +132,10 @@ done
 
 pkgsdir=$(dirname $pkgsfile)
 pkgsname=$(basename $pkgsfile .pkgs)
-postfile="${pkgsdir}/${pkgsname}.post"
+postfile=$(pl_locateDistroFile ../build/ ${pldistro} "${pkgsname}.post")
 [ -f $postfile ] && /bin/bash $postfile ${vref} || :
 
 # fix sudoers config
 [ -f ${vref}/etc/sudoers ] && echo -e "\nDefaults\tlogfile=/var/log/sudo\n" >> ${vref}/etc/sudoers
-[ -f ${vref}/etc/sudoers ] && sed -i 's,^Defaults.*requiretty,#Defaults requiretty,' ${vref}/etc/sudoers
 
 exit 0
