@@ -67,25 +67,14 @@ popd
 rm -rf $RPM_BUILD_ROOT
 
 pushd VserverReference
-install -D -m 755 vserver-reference.init $RPM_BUILD_ROOT/%{_initrddir}/vserver-reference
-install -D -m 644 vserver-reference.cron $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/vserver-reference
-install -D -m 644 vserver-reference.logrotate $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/vserver-reference
+install -D -m 755 initscripts/vserver-reference $RPM_BUILD_ROOT/%{_initrddir}/vserver-reference
+install -D -m 644 cron.d/vserver-reference $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/vserver-reference
+install -D -m 644 logrotate/vserver-reference $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/vserver-reference
 find vservers | cpio -p -d -u $RPM_BUILD_ROOT/
 popd
 
 %clean
 rm -rf $RPM_BUILD_ROOT
-
-# If run under sudo
-if [ -n "$SUDO_USER" ] ; then
-    # Allow user to delete the build directory
-    chown -h -R $SUDO_USER .
-    # Some temporary cdroot files like /var/empty/sshd and
-    # /usr/bin/sudo get created with non-readable permissions.
-    find . -not -perm +0600 -exec chmod u+rw {} \;
-    # Allow user to delete the built RPM(s)
-    chown -h -R $SUDO_USER %{_rpmdir}/%{_arch}
-fi
 
 %files %{slicefamily}
 %defattr(-,root,root)
@@ -109,8 +98,6 @@ test -d /vservers/.vref/%{slicefamily} && \
 %post %{slicefamily}
 chkconfig --add vserver-reference
 chkconfig vserver-reference on
-# store the default for nodemanager
-[ -f /etc/planetlab/slicefamily ] || { mkdir -p /etc/planetlab ; echo %{slicefamily} > /etc/planetlab/slicefamily ; }
 [ "$PL_BOOTCD" = "1" ] || service vserver-reference start
 
 # Randomize daily run time
