@@ -6,8 +6,8 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 %define name vserver
-%define version 4.2
-%define taglevel 16
+%define version 5.0
+%define taglevel 0
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -186,3 +186,5 @@ sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 * Tue Sep 14 2004 Mark Huang <mlhuang@cs.princeton.edu> 3.0-1.planetlab
 - initial build
+
+%define module_current_branch 4.2
