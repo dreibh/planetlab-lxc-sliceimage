@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 5.0
-%define taglevel 0
+%define taglevel 1
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -106,6 +106,12 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Fri Jan 29 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-5.0-1
+- first working version of 5.0:
+- pld.c/, db-config.d/ and nodeconfig/ scripts should now sit in the module they belong to
+- nodefamily is 3-fold with pldistro-fcdistro-arch
+- new module layout
+
 * Tue Oct 20 2009 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-4.2-16
 - fix issue about locating the post-install script(s)
 - this was causing the onelab distro to miss the /etc/sudoers patch
