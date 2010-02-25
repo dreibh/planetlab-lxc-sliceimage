@@ -137,7 +137,7 @@ for file in /etc/hosts /etc/resolv.conf /etc/planetlab/node_id \
             /etc/pki/rpm-gpg/* ; do
     if [ -r $file ] ; then
 	for vroot in $VROOTS ; do
-	    install -D -m 644 $file $vroot/$file
+	    [ -d $vroot ] && install -D -m 644 $file $vroot/$file
 	done
     fi
 done
@@ -146,14 +146,16 @@ done
 for vroot in $VROOTS ; do
     # NOTE: without this step, the 'rpm --allmatches' step can hang on boot
     # Remove stale RPM locks from all VROOT dirs
-    rm -f $vroot/var/lib/rpm/__db*
+    [ -d $vroot ] && rm -f $vroot/var/lib/rpm/__db*
 done
 
 # (Re)install GPG signing keys
 if [ -d /etc/pki/rpm-gpg ] ; then
     for vroot in $VROOTS ; do
-	chroot $vroot rpm --allmatches -e gpg-pubkey || :
-	chroot $vroot rpm --import /etc/pki/rpm-gpg/* || :
+	if [ -d $vroot ] ; then
+	    chroot $vroot rpm --allmatches -e gpg-pubkey || :
+	    chroot $vroot rpm --import /etc/pki/rpm-gpg/* || :
+	fi
     done
 fi
 
@@ -168,13 +170,15 @@ CACERT="/usr/boot/cacert.pem /mnt/cdrom/bootme/cacert/$PLC_BOOT_HOST/cacert.pem"
 for cacert in $CACERT ; do
     if [ -r $cacert ] ; then
 	for vroot in $VROOTS ; do
-	    # Install boot server certificate
-	    install -D -m 644 $cacert $vroot/usr/boot/cacert.pem
-	    echo $PLC_BOOT_HOST > $vroot/usr/boot/boot_server
+	    if [ -d $vroot ] ; then
+		# Install boot server certificate
+		install -D -m 644 $cacert $vroot/usr/boot/cacert.pem
+		echo $PLC_BOOT_HOST > $vroot/usr/boot/boot_server
 
-	    # Also install in /mnt/cdrom/bootme for backward compatibility
-	    install -D -m 644 $cacert $vroot/mnt/cdrom/bootme/cacert/$PLC_BOOT_HOST/cacert.pem
-	    echo $PLC_BOOT_HOST > $vroot/mnt/cdrom/bootme/BOOTSERVER
+		# Also install in /mnt/cdrom/bootme for backward compatibility
+		install -D -m 644 $cacert $vroot/mnt/cdrom/bootme/cacert/$PLC_BOOT_HOST/cacert.pem
+		echo $PLC_BOOT_HOST > $vroot/mnt/cdrom/bootme/BOOTSERVER
+	    fi
 	done
 	break
     fi
