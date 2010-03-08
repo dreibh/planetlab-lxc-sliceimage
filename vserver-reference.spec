@@ -105,6 +105,11 @@ M=$((60 * $RANDOM / 32768))
 H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
+%post systemslices-%{slicefamily}
+# need to do this for systemslices, for when a new image shows up
+# we've already the service installed and enabled, as systemslices requires the plain package
+[ "$PL_BOOTCD" = "1" ] || service vserver-reference start
+
 %changelog
 * Fri Jan 29 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-5.0-1
 - first working version of 5.0:
