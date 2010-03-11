@@ -12,7 +12,8 @@
 # Marc E. Fiuczynski <mef@cs.princeton.edu>
 # Copyright (C) 2004-2007 The Trustees of Princeton University
 #
-# $Id: build.sh,v 1.20 2007/09/06 20:41:23 faiyaza Exp $
+# $Id$
+# $URL$
 #
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -127,6 +128,10 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
     rm -rf ${vdir}
     rm -f  ${vdir}.changes
     mv ${vdir}-tmp ${vdir}
+
+    # cleanup yum remainings
+    rm -rf ${vdir}/build ${vdir}/longbuildroot
+
     echo "--------DONE BUILDING system vserver ${NAME}: $(date)"
 done
 
@@ -137,5 +142,8 @@ postfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver.post)
 
 # fix sudoers config
 [ -f ${vref}/etc/sudoers ] && echo -e "\nDefaults\tlogfile=/var/log/sudo\n" >> ${vref}/etc/sudoers
+
+# cleanup yum remainings
+rm -rf ${vref}/build ${vref}/longbuildroot
 
 exit 0

@@ -15,11 +15,13 @@
 case "$1" in
     start|restart|reload)
 	;;
+    force)
+	FORCE=true;;
     stop|status)
 	exit 0
 	;;
     *)
-	echo $"Usage: $0 {start|stop|restart|status}"
+	echo $"Usage: $0 {start|stop|restart|reload|status|force}"
 	exit 1
 	;;
 esac
@@ -88,9 +90,15 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
     # e.g. VREFNAME=planetflow-f8-i386
     VREFNAME=$(echo $SLICEFAMILY | sed -e "s,^[^-]*-,$NAME-,")
 
+    VREFPATH="$__DEFAULT_VSERVERDIR/.vref/$VREFNAME"
+    
+    # do not redo existing vref's unless force is mentioned
+    [ -z "$FORCE" -a -d "$VREFPATH" ] && continue
+    [ -z "$FORCE" ] && message=Building
+    [ -n "$FORCE" ] && message=Force-building
+    
     # Copy base reference image
-    if [ ! -d "$__DEFAULT_VSERVERDIR/.vref/$VREFNAME" ] ; then
-	echo -n $"Building VServer reference image for $NAME in $VREFNAME: " >&3 2>&4
+	echo -n $"$message VServer reference image for $NAME in $VREFNAME: " >&3 2>&4
 
 	# Build in temporary directory
 	mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
@@ -98,9 +106,9 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
 	mkdir -p "$__DEFAULT_VSERVERDIR/.vref"
 
 	# build the systemvserver from the one it was originally cloned from
-	REF="$__DEFAULT_VSERVERDIR/.vref/$SLICEFAMILY"
-	if [ -d "$REF" ] ; then
-	    "$_VCLONE" "$REF"/ "$TMP"/
+	FAMILYREF="$__DEFAULT_VSERVERDIR/.vref/$SLICEFAMILY"
+	if [ -d "$FAMILYREF" ] ; then
+	    "$_VCLONE" "$FAMILYREF"/ "$TMP"/
 	    RETVAL=$?
 	else
 	    RETVAL=1
@@ -117,14 +125,15 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
 
 	# Move it to its permanent location when complete
  	if [ $RETVAL -eq 0 ] ; then
-	    mv "$TMP" "$__DEFAULT_VSERVERDIR/.vref/$VREFNAME"
+	    # if in force mode, cleanup 
+	    [ -d "$VREFPATH" ] && rm -rf "$VREFPATH"
+	    mv "$TMP" "$VREFPATH"
 	    success >&3 2>&4
 	else
 	    rm -rf "$TMP"
 	    failure >&3 2>&4
 	fi
 	echo >&3 2>&4
-    fi
 done
 
 echo -n $"Updating VServer reference images: " >&3 2>&4
