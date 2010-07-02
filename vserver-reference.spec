@@ -59,14 +59,16 @@ This package installs the stubs necessary to create system slices
 %setup -q
 
 %build
-pushd VserverReference
+[ -d vserver-reference ] || ln -s Vserver-Reference vserver-reference
+
+pushd vserver-reference
 ./build.sh %{pldistro} %{slicefamily}
 popd
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-pushd VserverReference
+pushd vserver-reference
 install -D -m 755 initscripts/vserver-reference $RPM_BUILD_ROOT/%{_initrddir}/vserver-reference
 install -D -m 644 cron.d/vserver-reference $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/vserver-reference
 install -D -m 644 logrotate/vserver-reference $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/vserver-reference
