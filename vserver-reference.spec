@@ -59,7 +59,7 @@ This package installs the stubs necessary to create system slices
 %setup -q
 
 %build
-[ -d vserver-reference ] || ln -s Vserver-Reference vserver-reference
+[ -d vserver-reference ] || ln -s VserverReference vserver-reference
 
 pushd vserver-reference
 ./build.sh %{pldistro} %{slicefamily}
