@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 5.0
-%define taglevel 2
+%define taglevel 3
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -113,6 +113,9 @@ sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 [ "$PL_BOOTCD" = "1" ] || service vserver-reference force
 
 %changelog
+* Mon Jul 05 2010 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - VserverReference-5.0-3
+- module name changes
+
 * Fri Mar 12 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-5.0-2
 - iron out system slices reference image update
 
