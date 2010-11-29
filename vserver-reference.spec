@@ -13,6 +13,13 @@
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %define release %{taglevel}%{?date:.%{date}}
 
+
+# we don't really need the standard postinstall process from rpm that
+# strips files and byte-compiles python files. all files in this
+# package are comming from other rpm files and they've already went
+# through this post install processing. - baris
+%define __os_install_post %{nil}
+
 Summary: VServer reference image for slice family %{slicefamily}
 Name: %{name}
 Version: %{version}
