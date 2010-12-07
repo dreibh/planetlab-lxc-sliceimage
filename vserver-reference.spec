@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 5.0
-%define taglevel 3
+%define taglevel 4
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -120,6 +120,9 @@ sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 [ "$PL_BOOTCD" = "1" ] || service vserver-reference force
 
 %changelog
+* Tue Dec 07 2010 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - vserver-reference-5.0-4
+- optimize rpm construction - skips stripping and the like
+
 * Mon Jul 05 2010 Baris Metin <Talip-Baris.Metin@sophia.inria.fr> - VserverReference-5.0-3
 - module name changes
 
