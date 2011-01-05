@@ -1,8 +1,3 @@
-#
-# $Id$
-#
-%define url $URL$
-
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 %define name vserver
@@ -34,7 +29,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
-URL: %(echo %{url} | cut -d ' ' -f 2)
+URL: %{SCMURL}
 
 %define debug_package %{nil}
 
