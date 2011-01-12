@@ -7,7 +7,7 @@
 
 %define name vserver
 %define version 4.2
-%define taglevel 16
+%define taglevel 17
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -112,6 +112,9 @@ H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 
 %changelog
+* Wed Jan 12 2011 Daniel Hokka Zakrisson <dhokka@cs.princeton.edu> - VserverReference-4.2-17
+- Remove ugly hack that breaks su/sudo on upgrades.
+
 * Tue Oct 20 2009 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - VserverReference-4.2-16
 - fix issue about locating the post-install script(s)
 - this was causing the onelab distro to miss the /etc/sudoers patch
