@@ -2,7 +2,7 @@
 
 %define name vserver
 %define version 5.0
-%define taglevel 5
+%define taglevel 6
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -108,6 +108,9 @@ sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
 [ "$PL_BOOTCD" = "1" ] || service vserver-reference force
 
 %changelog
+* Mon Jan 24 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - vserver-reference-5.0-6
+- no semantic change - just fixed specfile for git URL
+
 * Wed Dec 29 2010 Daniel Hokka Zakrisson <dhokka@cs.princeton.edu> - vserver-reference-5.0-5
 - Remove ugly hack that breaks su/sudo on upgrades.
 
