@@ -9,8 +9,6 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004 The Trustees of Princeton University
 #
-# $Id$
-#
 
 case "$1" in
     start|restart|reload)

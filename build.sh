@@ -12,9 +12,6 @@
 # Marc E. Fiuczynski <mef@cs.princeton.edu>
 # Copyright (C) 2004-2007 The Trustees of Princeton University
 #
-# $Id$
-# $URL$
-#
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 

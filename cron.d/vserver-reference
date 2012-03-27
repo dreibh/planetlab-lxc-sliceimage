@@ -5,7 +5,5 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id$
-#
 
 @M@ @H@ * * *	root	/etc/init.d/vserver-reference start >/dev/null 2>&1
