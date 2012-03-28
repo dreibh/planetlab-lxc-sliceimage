@@ -1,8 +1,8 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
-%define name vserver
-%define version 5.0
-%define taglevel 6
+%define name sliceimage
+%define version 5.1
+%define taglevel 1
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -14,8 +14,15 @@
 # package are comming from other rpm files and they've already went
 # through this post install processing. - baris
 %define __os_install_post %{nil}
+%define debug_package %{nil}
 
-Summary: VServer reference image for slice family %{slicefamily}
+Vendor: PlanetLab
+Packager: PlanetLab Central <support@planet-lab.org>
+Distribution: PlanetLab %{plrelease}
+URL: %{SCMURL}
+
+# sliceimage per se is just a placeholder
+Summary: Dummy reference image for slice family %{slicefamily}
 Name: %{name}
 Version: %{version}
 Release: %{release}
@@ -26,33 +33,32 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 # this would not be right
 #BuildArch: noarch
 
-Vendor: PlanetLab
-Packager: PlanetLab Central <support@planet-lab.org>
-Distribution: PlanetLab %{plrelease}
-URL: %{SCMURL}
-
-%define debug_package %{nil}
-
 %description
 This package does not really exist.
 
+
 %package %{slicefamily}
-Summary: VServer reference image
+Summary: Slice reference image for creating slivers
 Group: Applications/System
 AutoReqProv: no
 Requires: util-vserver, e2fsprogs, yum
+# in 5.0, this package was named vserver-<>
+Obsoletes: vserver-%{slicefamily}
 
 %description %{slicefamily}
-This package creates the virtual server (VServer) reference image used
+This package creates the slice reference image used
 as the installation base for new PlanetLab slivers.
 
-%package systemslices-%{slicefamily}
-Summary: System slice packages
-Group: Applications/System
-Requires: vserver-%{slicefamily} >= %{version}-%{release}
-AutoReqProv: no
 
-%description systemslices-%{slicefamily} 
+%package system-%{slicefamily}
+Summary: Reference image for system slices
+Group: Applications/System
+AutoReqProv: no
+Requires: sliceimage-%{slicefamily} >= %{version}-%{release}
+# in 5.0, this package was named vserver-systemslices-<>
+Obsoletes: vserver-systemslices-%{slicefamily}
+
+%description system-%{slicefamily} 
 This package installs the stubs necessary to create system slices
 (typically planetflow) on top of the reference image.
 
@@ -60,19 +66,18 @@ This package installs the stubs necessary to create system slices
 %setup -q
 
 %build
-[ -d vserver-reference ] || ln -s VserverReference vserver-reference
-
-pushd vserver-reference
+pushd sliceimage
 ./build.sh %{pldistro} %{slicefamily}
 popd
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-pushd vserver-reference
-install -D -m 755 initscripts/vserver-reference $RPM_BUILD_ROOT/%{_initrddir}/vserver-reference
-install -D -m 644 cron.d/vserver-reference $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/vserver-reference
-install -D -m 644 logrotate/vserver-reference $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/vserver-reference
+pushd sliceimage
+install -D -m 755 initscripts/sliceimage $RPM_BUILD_ROOT/%{_initrddir}/sliceimage
+install -D -m 644 cron.d/sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/sliceimage
+install -D -m 644 logrotate/sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/sliceimage
+# the path for the root of these is still /vservers/ for compat
 find vservers | cpio -p -d -u $RPM_BUILD_ROOT/
 popd
 
@@ -81,31 +86,31 @@ rm -rf $RPM_BUILD_ROOT
 
 %files %{slicefamily}
 %defattr(-,root,root)
-%{_initrddir}/vserver-reference
-%{_sysconfdir}/cron.d/vserver-reference
-%{_sysconfdir}/logrotate.d/vserver-reference
+%{_initrddir}/sliceimage
+%{_sysconfdir}/cron.d/sliceimage
+%{_sysconfdir}/logrotate.d/sliceimage
 /vservers/.vref/%{slicefamily}
 
-%files systemslices-%{slicefamily}
+%files system-%{slicefamily}
 %defattr(-,root,root)
 /vservers/.vstub/%{slicefamily}
 
 %define vcached_pid /var/run/vcached.pid
 
 %post %{slicefamily}
-chkconfig --add vserver-reference
-chkconfig vserver-reference on
-[ "$PL_BOOTCD" = "1" ] || service vserver-reference start
+chkconfig --add sliceimage
+chkconfig sliceimage on
+[ "$PL_BOOTCD" = "1" ] || service sliceimage start
 
 # Randomize daily run time
 M=$((60 * $RANDOM / 32768))
 H=$((24 * $RANDOM / 32768))
-sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-reference
+sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/sliceimage
 
-%post systemslices-%{slicefamily}
-# need to do this for systemslices, for when a new image shows up
+%post system-%{slicefamily}
+# need to do this for system slices, for when a new image shows up
 # we've already the service installed and enabled, as systemslices requires the plain package
-[ "$PL_BOOTCD" = "1" ] || service vserver-reference force
+[ "$PL_BOOTCD" = "1" ] || service sliceimage force
 
 %changelog
 * Mon Jan 24 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - vserver-reference-5.0-6
