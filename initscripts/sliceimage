@@ -1,10 +1,8 @@
 #!/bin/bash
 #
-# vserver-reference	Updates VServer reference
-#
 # Load before nm, vcached, and vservers
 # chkconfig: 3 60 80
-# description: Builds VServer reference image
+# description: Update slice images
 #
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004 The Trustees of Princeton University
@@ -39,7 +37,7 @@ exec 3>&1
 exec 4>&2
 
 # Redirect stdout and stderr to a log file
-exec >>/var/log/vserver-reference.log
+exec >>/var/log/sliceimage
 exec 2>&1
 
 echo "--- STARTING $(date) ---"  >&3 2>&4
@@ -77,12 +75,12 @@ fi
 
 # Build reference images for system slices
 # xxx if several instances of systemslices get installed, only one gets instanciated
-for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
+for systemslice in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
     # e.g. NAME=planetflow
-    NAME=$(basename $systemvserver .cloned)
-    DIR=$(dirname $systemvserver)
+    NAME=$(basename $systemslice .cloned)
+    DIR=$(dirname $systemslice)
     # e.g. SLICEFAMILY=planetlab-f8-i386
-    SLICEFAMILY=$(cat $systemvserver)
+    SLICEFAMILY=$(cat $systemslice)
     # deduce the actual name used in .vref by replacing the first part of slice-family 
     # (pldistro) with the slice name
     # e.g. VREFNAME=planetflow-f8-i386
@@ -96,14 +94,14 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
     [ -n "$FORCE" ] && message=Force-building
     
     # Copy base reference image
-	echo -n $"$message VServer reference image for $NAME in $VREFNAME: " >&3 2>&4
+	echo -n $"$message slice image for $NAME in $VREFNAME: " >&3 2>&4
 
 	# Build in temporary directory
 	mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
 	TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/$NAME.XXXXXX")
 	mkdir -p "$__DEFAULT_VSERVERDIR/.vref"
 
-	# build the systemvserver from the one it was originally cloned from
+	# build the systemslice from the one it was originally cloned from
 	FAMILYREF="$__DEFAULT_VSERVERDIR/.vref/$SLICEFAMILY"
 	if [ -d "$FAMILYREF" ] ; then
 	    "$_VCLONE" "$FAMILYREF"/ "$TMP"/
@@ -112,7 +110,7 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
 	    RETVAL=1
 	fi
 
-	# merge the stub with the reference to get the system vserver
+	# merge the stub with the reference to get the system slice
  	if [ $RETVAL -eq 0 ] ; then
 	    (cd "$DIR/$NAME"/ && find . | cpio -m -d -u -p "$TMP"/)
 	    RETVAL=$?
@@ -134,7 +132,7 @@ for systemvserver in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
 	echo >&3 2>&4
 done
 
-echo -n $"Updating VServer reference images: " >&3 2>&4
+echo -n $"Updating slice images: " >&3 2>&4
 
 VROOTS="$__DEFAULT_VSERVERDIR/.vref/* $__DEFAULT_VSERVERDIR/.vcache/* $__DEFAULT_VSERVERDIR/${PLC_SLICE_PREFIX}_*"
 
