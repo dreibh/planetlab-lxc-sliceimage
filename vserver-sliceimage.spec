@@ -33,9 +33,9 @@ handles cow flags, and various cleanups
 %install
 rm -rf $RPM_BUILD_ROOT
 
-install -D -m 755 initscripts/sliceimage $RPM_BUILD_ROOT/%{_initrddir}/sliceimage
-install -D -m 644 cron.d/sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/sliceimage
-install -D -m 644 logrotate/sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/sliceimage
+install -D -m 755 initscripts/vserver-sliceimage $RPM_BUILD_ROOT/%{_initrddir}/vserver-sliceimage
+install -D -m 644 cron.d/vserver-sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/vserver-sliceimage
+install -D -m 644 logrotate/vserver-sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/vserver-sliceimage
 
 %clean
 rm -rf $RPM_BUILD_ROOT
