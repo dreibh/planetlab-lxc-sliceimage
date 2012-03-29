@@ -89,16 +89,19 @@ rm -rf $RPM_BUILD_ROOT
 /vservers/.vstub/%{slicefamily}
 
 ### for upgrades
-%post ${slicefamily}
+%post %{slicefamily}
+#[ "$PL_BOOTCD" = "1" ] || service vserver-sliceimage start
 [ "$PL_BOOTCD" = "1" ] && return
+# remove explicit reference to vserver, find out all relevant scripts
 for initscript in /etc/init.d/*sliceimage*; do $initscript start ; done
 
 # need to do this for system slices, for when a new image shows up
 # we've already the service installed and enabled, as systemslices requires the plain package
 %post system-%{slicefamily}
-[ "$PL_BOOTCD" = "1" ] && return
-for initscript in /etc/init.d/*sliceimage*; do $initscript force ; done
 #[ "$PL_BOOTCD" = "1" ] || service vserver-sliceimage force
+[ "$PL_BOOTCD" = "1" ] && return
+# remove explicit reference to vserver, find out all relevant scripts
+for initscript in /etc/init.d/*sliceimage*; do $initscript force ; done
 
 
 #%define vcached_pid /var/run/vcached.pid
