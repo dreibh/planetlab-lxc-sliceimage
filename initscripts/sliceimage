@@ -8,6 +8,9 @@
 # Copyright (C) 2004 The Trustees of Princeton University
 #
 
+# Source function library.
+. /etc/init.d/functions
+
 case "$1" in
     start|restart|reload)
 	;;
@@ -21,9 +24,6 @@ case "$1" in
 	exit 1
 	;;
 esac
-
-# Source function library.
-. /etc/init.d/functions
 
 # VServer definitions
 init_paths="/usr/lib64/util-vserver/util-vserver-vars /usr/lib/util-vserver/util-vserver-vars"
@@ -61,15 +61,15 @@ setattr --barrier "$__DEFAULT_VSERVERDIR"
 # conserving space by linking and not copying unified files.
 
 if [ -f /proc/virtual/info ] ; then
-	x=$[ 16#`awk '/^VCIKernel:/ { print $2 }' /proc/virtual/info` ]; 
-	y=$[ (x >> 9) & 1]
-	if test "$y" = 1 ; then 
-		# COW support
-		find "$__DEFAULT_VSERVERDIR/.vref"/* -type f -print0 | xargs -0 setattr --iunlink
-	else 
-		# no COW; 
-		find "$__DEFAULT_VSERVERDIR/.vref"/* -type f -print0 | xargs -0 setattr --~iunlink
-	fi
+    x=$[ 16#`awk '/^VCIKernel:/ { print $2 }' /proc/virtual/info` ]; 
+    y=$[ (x >> 9) & 1]
+    if test "$y" = 1 ; then 
+        # COW support
+	find "$__DEFAULT_VSERVERDIR/.vref"/* -type f -print0 | xargs -0 setattr --iunlink
+    else 
+        # no COW; 
+	find "$__DEFAULT_VSERVERDIR/.vref"/* -type f -print0 | xargs -0 setattr --~iunlink
+    fi
 fi
 
 
@@ -94,42 +94,42 @@ for systemslice in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
     [ -n "$FORCE" ] && message=Force-building
     
     # Copy base reference image
-	echo -n $"$message slice image for $NAME in $VREFNAME: " >&3 2>&4
+    echo -n $"$message slice image for $NAME in $VREFNAME: " >&3 2>&4
 
-	# Build in temporary directory
-	mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
-	TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/$NAME.XXXXXX")
-	mkdir -p "$__DEFAULT_VSERVERDIR/.vref"
+    # Build in temporary directory
+    mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
+    TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/$NAME.XXXXXX")
+    mkdir -p "$__DEFAULT_VSERVERDIR/.vref"
 
-	# build the systemslice from the one it was originally cloned from
-	FAMILYREF="$__DEFAULT_VSERVERDIR/.vref/$SLICEFAMILY"
-	if [ -d "$FAMILYREF" ] ; then
-	    "$_VCLONE" "$FAMILYREF"/ "$TMP"/
-	    RETVAL=$?
-	else
-	    RETVAL=1
-	fi
+    # build the systemslice from the one it was originally cloned from
+    FAMILYREF="$__DEFAULT_VSERVERDIR/.vref/$SLICEFAMILY"
+    if [ -d "$FAMILYREF" ] ; then
+	"$_VCLONE" "$FAMILYREF"/ "$TMP"/
+	RETVAL=$?
+    else
+	RETVAL=1
+    fi
 
-	# merge the stub with the reference to get the system slice
- 	if [ $RETVAL -eq 0 ] ; then
-	    (cd "$DIR/$NAME"/ && find . | cpio -m -d -u -p "$TMP"/)
-	    RETVAL=$?
-	fi
+    # merge the stub with the reference to get the system slice
+    if [ $RETVAL -eq 0 ] ; then
+	(cd "$DIR/$NAME"/ && find . | cpio -m -d -u -p "$TMP"/)
+	RETVAL=$?
+    fi
 
-        # Clean RPM state
-	rm -f "$TMP/var/lib/rpm/__db"*
+    # Clean RPM state
+    rm -f "$TMP/var/lib/rpm/__db"*
 
-	# Move it to its permanent location when complete
- 	if [ $RETVAL -eq 0 ] ; then
-	    # if in force mode, cleanup 
-	    [ -d "$VREFPATH" ] && rm -rf "$VREFPATH"
-	    mv "$TMP" "$VREFPATH"
-	    success >&3 2>&4
-	else
-	    rm -rf "$TMP"
-	    failure >&3 2>&4
-	fi
-	echo >&3 2>&4
+    # Move it to its permanent location when complete
+    if [ $RETVAL -eq 0 ] ; then
+	# if in force mode, cleanup 
+	[ -d "$VREFPATH" ] && rm -rf "$VREFPATH"
+	mv "$TMP" "$VREFPATH"
+	success >&3 2>&4
+    else
+	rm -rf "$TMP"
+	failure >&3 2>&4
+    fi
+    echo >&3 2>&4
 done
 
 echo -n $"Updating slice images: " >&3 2>&4
