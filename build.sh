@@ -1,12 +1,11 @@
 #!/bin/bash
 #
-# Builds all reference image for vservers.  To optimize for space it
-# will only build a complete base vserver reference image and then
+# Builds all reference image for slices.  To optimize for space it
+# will only build a complete base reference image and then
 # builds "stub" images that are just contain the additional files
 # and/or changes for a given reference image.  This is done to shrink
 # the RPM itself.  These will be pieced back together with the base
-# vserver reference image by an init script that is installed on the
-# node.
+# image by an init script that is installed on the node.
 #
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Marc E. Fiuczynski <mef@cs.princeton.edu>
@@ -37,21 +36,21 @@ shift $shiftcount
 
 # pldistro expected as $1 
 pldistro=$1 ; shift
-# The vserver reference name - this comes from spec's slicefamily
+# this comes from spec's slicefamily
 slicefamily=$1; shift
 
 # Do not tolerate errors
 set -e
 
-# Path's to the vserver references images and stubs
+# Path's to the reference images and stubs
+# This is inherited from util-vservers
 vrefdir=$PWD/vservers/.vref
 vref=${vrefdir}/${slicefamily}
 # stubs are created in a subdir per slicefamily
 vstubdir=$PWD/vservers/.vstub/${slicefamily}
 
-# Make /vservers and default vserver reference image
+# Create paths
 install -d -m 755 ${vref}
-# needed for pldistros that don't have any system vserver images
 install -d -m 755 ${vstubdir}
 
 # Some of the PlanetLab RPMs attempt to (re)start themselves in %post,
@@ -59,47 +58,47 @@ install -d -m 755 ${vstubdir}
 # would like to pretend that we are.
 export PL_BOOTCD=1
 
-# Populate image with vserver-reference packages
+# Populate image with sliceimage packages
 pl_root_makedevs ${vref}
 # locate the packages and groups file
-pkgsfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver.pkgs)
+pkgsfile=$(pl_locateDistroFile ../build/ ${pldistro} sliceimage.pkgs)
 pl_root_mkfedora ${vref} ${pldistro} $pkgsfile
 pl_root_tune_image ${vref}
 
-systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null | wc -l)
-[ $systemvserver_count -gt 0 ] && for systemvserver in $(ls ../build/config.${pldistro}/vserver-*.pkgs) ; do
-    NAME=$(basename $systemvserver .pkgs | sed -e s,vserver-,,)
+systemslice_count=$(ls ../build/config.${pldistro}/sliceimage-*.pkgs 2> /dev/null | wc -l)
+[ $systemslice_count -gt 0 ] && for systemslice in $(ls ../build/config.${pldistro}/sliceimage-*.pkgs) ; do
+    NAME=$(basename $systemslice .pkgs | sed -e s,sliceimage-,,)
 
-    echo "--------START BUILDING system vserver ${NAME}: $(date)"
+    echo "--------START BUILDING system sliceimage ${NAME}: $(date)"
 
     # "Parse" out the packages and groups for yum
-    systempackages=$(pl_getPackages ${pl_DISTRO_NAME} $pldistro $systemvserver)
-    systemgroups=$(pl_getGroups ${pl_DISTRO_NAME} $pldistro $systemvserver)
+    systempackages=$(pl_getPackages ${pl_DISTRO_NAME} $pldistro $systemslice)
+    systemgroups=$(pl_getGroups ${pl_DISTRO_NAME} $pldistro $systemslice)
 
     vdir=${vstubdir}/${NAME}
     rm -rf ${vdir}/*
     install -d -m 755 ${vdir}
 
-    # Clone the base vserver reference to the system vserver reference
+    # Clone the base sliceimage reference to the system sliceimage reference
     (cd ${vref} && find . | cpio -m -d -u -p ${vdir})
     rm -f ${vdir}/var/lib/rpm/__db*
 
     # Communicate to the initialization script from which vref this stub was cloned
     echo ${slicefamily} > ${vdir}.cloned
 
-    # Install the system vserver specific packages
+    # Install the system sliceimage specific packages
     [ -n "$systempackages" ] && yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y install $systempackages
     for group_plus in $systemgroups; do
 	group=$(echo $group_plus | sed -e "s,+++, ,g")
         yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y groupinstall "$group"
     done
 
-    # search e.g. vserver-planetflow.post in config.<pldistro> or in config.planetlab otherwise
-    postfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver-${NAME}.post || : )
+    # search e.g. sliceimage-planetflow.post in config.<pldistro> or in config.planetlab otherwise
+    postfile=$(pl_locateDistroFile ../build/ ${pldistro} sliceimage-${NAME}.post || : )
 
     [ -f $postfile ] && /bin/bash $postfile ${vdir} || :
 
-    # Create a copy of the system vserver w/o the vserver reference files and make it smaller. 
+    # Create a copy of the system sliceimage w/o the sliceimage reference files and make it smaller. 
     # This is a three step process:
 
     # step 1: clean out yum cache to reduce space requirements
@@ -129,11 +128,11 @@ systemvserver_count=$(ls ../build/config.${pldistro}/vserver-*.pkgs 2> /dev/null
     # cleanup yum remainings
     rm -rf ${vdir}/build ${vdir}/longbuildroot
 
-    echo "--------DONE BUILDING system vserver ${NAME}: $(date)"
+    echo "--------DONE BUILDING system sliceimage ${NAME}: $(date)"
 done
 
-# search vserver.post in config.<pldistro> or in config.planetlab otherwise
-postfile=$(pl_locateDistroFile ../build/ ${pldistro} vserver.post)
+# search sliceimage.post in config.<pldistro> or in config.planetlab otherwise
+postfile=$(pl_locateDistroFile ../build/ ${pldistro} sliceimage.post)
 
 [ -f $postfile ] && /bin/bash $postfile ${vref} || :
 
