@@ -1,4 +1,4 @@
-/var/log/sliceimage {
+/var/log/vserver-sliceimage {
     copytruncate
     compress
     daily

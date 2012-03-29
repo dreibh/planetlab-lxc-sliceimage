@@ -37,7 +37,7 @@ exec 3>&1
 exec 4>&2
 
 # Redirect stdout and stderr to a log file
-exec >>/var/log/sliceimage
+exec >>/var/log/vserver-sliceimage
 exec 2>&1
 
 echo "--- STARTING $(date) ---"  >&3 2>&4

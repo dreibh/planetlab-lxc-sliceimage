@@ -41,7 +41,6 @@ This package does not really exist.
 Summary: Slice reference image for creating slivers
 Group: Applications/System
 AutoReqProv: no
-Requires: util-vserver, e2fsprogs, yum
 # in 5.0, this package was named vserver-<>
 Obsoletes: vserver-%{slicefamily}
 
@@ -74,9 +73,6 @@ popd
 rm -rf $RPM_BUILD_ROOT
 
 pushd sliceimage
-install -D -m 755 initscripts/sliceimage $RPM_BUILD_ROOT/%{_initrddir}/sliceimage
-install -D -m 644 cron.d/sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/sliceimage
-install -D -m 644 logrotate/sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/sliceimage
 # the path for the root of these is still /vservers/ for compat
 find vservers | cpio -p -d -u $RPM_BUILD_ROOT/
 popd
@@ -86,31 +82,13 @@ rm -rf $RPM_BUILD_ROOT
 
 %files %{slicefamily}
 %defattr(-,root,root)
-%{_initrddir}/sliceimage
-%{_sysconfdir}/cron.d/sliceimage
-%{_sysconfdir}/logrotate.d/sliceimage
 /vservers/.vref/%{slicefamily}
 
 %files system-%{slicefamily}
 %defattr(-,root,root)
 /vservers/.vstub/%{slicefamily}
 
-%define vcached_pid /var/run/vcached.pid
-
-%post %{slicefamily}
-chkconfig --add sliceimage
-chkconfig sliceimage on
-[ "$PL_BOOTCD" = "1" ] || service sliceimage start
-
-# Randomize daily run time
-M=$((60 * $RANDOM / 32768))
-H=$((24 * $RANDOM / 32768))
-sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/sliceimage
-
-%post system-%{slicefamily}
-# need to do this for system slices, for when a new image shows up
-# we've already the service installed and enabled, as systemslices requires the plain package
-[ "$PL_BOOTCD" = "1" ] || service sliceimage force
+#%define vcached_pid /var/run/vcached.pid
 
 %changelog
 * Mon Jan 24 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - vserver-reference-5.0-6
