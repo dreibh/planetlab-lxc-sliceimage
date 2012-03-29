@@ -41,22 +41,14 @@ install -D -m 644 logrotate/sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%{_initrddir}/sliceimage
-%{_sysconfdir}/cron.d/sliceimage
-%{_sysconfdir}/logrotate.d/sliceimage
+%{_initrddir}/vserver-sliceimage
+%{_sysconfdir}/cron.d/vserver-sliceimage
+%{_sysconfdir}/logrotate.d/vserver-sliceimage
 
 %post
-chkconfig --add sliceimage
-chkconfig sliceimage on
-[ "$PL_BOOTCD" = "1" ] || service sliceimage start
-
+chkconfig --add vserver-sliceimage
+chkconfig vserver-sliceimage on
 # Randomize daily run time
 M=$((60 * $RANDOM / 32768))
 H=$((24 * $RANDOM / 32768))
-sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/sliceimage
-
-%post
-# need to do this for system slices, for when a new image shows up
-# we've already the service installed and enabled, as systemslices requires the plain package
-[ "$PL_BOOTCD" = "1" ] || service sliceimage force
-
+sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-sliceimage
