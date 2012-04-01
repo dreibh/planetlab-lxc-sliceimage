@@ -1,5 +1,12 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
+# historically there was one dummy 'sliceimage' package, and 
+# then 2 subpackages with %{slicefamily} and system-%{slicefamily}
+# however the python spec2make that we need to use on f>=15 is dumb
+# it cannot detect it's an empty/dummy package, and thus includes it
+# in e.g. noderepo, which fails
+# so we now only have the 2 relevant packages
+
 %define name sliceimage
 %define version 5.1
 %define taglevel 0
@@ -22,34 +29,25 @@ Distribution: PlanetLab %{plrelease}
 URL: %{SCMURL}
 
 # sliceimage per se is just a placeholder
-Summary: Dummy reference image for slice family %{slicefamily}
-Name: %{name}
+Summary: Slice reference image so node can create slivers of type %{slicefamily}
+Name: %{name}-%{slicefamily}
 Version: %{version}
 Release: %{release}
 Source0: %{name}-%{version}.tar.bz2
 License: GPL
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-# this would not be right
-#BuildArch: noarch
-
-%description
-This package does not really exist.
-
-
-%package %{slicefamily}
-Summary: Slice reference image for creating slivers
-Group: Applications/System
-AutoReqProv: no
 # in 5.0, this package was named vserver-<>
 Obsoletes: vserver-%{slicefamily}
+# this would not be right
+#BuildArch: noarch
+AutoReqProv: no
 
-%description %{slicefamily}
-This package creates the slice reference image used
-as the installation base for new PlanetLab slivers.
+%description
+This package provides the nodes with the root image used as the 
+installation base for new slivers of type %{slicefamily}.
 
-
-%package system-%{slicefamily}
+%package -n sliceimage-system-%{slicefamily}
 Summary: Reference image for system slices
 Group: Applications/System
 AutoReqProv: no
@@ -57,7 +55,7 @@ Requires: sliceimage-%{slicefamily} >= %{version}-%{release}
 # in 5.0, this package was named vserver-systemslices-<>
 Obsoletes: vserver-systemslices-%{slicefamily}
 
-%description system-%{slicefamily} 
+%description -n sliceimage-system-%{slicefamily} 
 This package installs the stubs necessary to create system slices
 (typically planetflow) on top of the reference image.
 
@@ -80,16 +78,16 @@ popd
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files %{slicefamily}
+%files
 %defattr(-,root,root)
 /vservers/.vref/%{slicefamily}
 
-%files system-%{slicefamily}
+%files -n sliceimage-system-%{slicefamily}
 %defattr(-,root,root)
 /vservers/.vstub/%{slicefamily}
 
 ### for upgrades
-%post %{slicefamily}
+%post
 #[ "$PL_BOOTCD" = "1" ] || service vserver-sliceimage start
 [ "$PL_BOOTCD" = "1" ] && return
 # remove explicit reference to vserver, find out all relevant scripts
@@ -97,7 +95,7 @@ for initscript in /etc/init.d/*sliceimage*; do $initscript start ; done
 
 # need to do this for system slices, for when a new image shows up
 # we've already the service installed and enabled, as systemslices requires the plain package
-%post system-%{slicefamily}
+%post -n sliceimage-system-%{slicefamily}
 #[ "$PL_BOOTCD" = "1" ] || service vserver-sliceimage force
 [ "$PL_BOOTCD" = "1" ] && return
 # remove explicit reference to vserver, find out all relevant scripts
