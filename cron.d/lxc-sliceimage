@@ -1,0 +1,9 @@
+#
+# Runs once a day to update the VServer reference images and system
+# slice configuration files
+#
+# Mark Huang <mlhuang@cs.princeton.edu>
+# Copyright (C) 2006 The Trustees of Princeton University
+#
+
+@M@ @H@ * * *	root	/etc/init.d/lxc-sliceimage start >/dev/null 2>&1

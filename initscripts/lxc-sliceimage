@@ -1,0 +1,54 @@
+#!/bin/bash
+# chkconfig: 345 20 80
+# description: Create BTRFS subvolumes for LXC reference images.
+#
+
+
+case "$1" in
+    start|restart|reload)
+        ;;
+    force)
+        FORCE=true;;
+    stop|status)
+        exit 0
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|reload|status|force}"
+        exit 1
+        ;;
+esac
+
+# Check if we are in the build environment
+mount | grep -q 'planetlab-vservers' || exit 0
+
+# Source function library
+. /etc/init.d/functions
+
+# xxx get version some other way
+# might just want to scan /vservers/.vref instead
+# upgrades (from the real image to the .lvref area) might be challenging
+# xxx 
+
+sliceimage_dir=/vservers/.vref
+
+[ -d $sliceimage_dir ] || exit 0
+
+sliceimages=$(cd $sliceimage_dir ; ls )
+
+for sliceimage in $sliceimages; do
+    mkdir -p /vservers/.lvref
+    [ -d /vservers/.lvref/$sliceimage ] && continue
+    btrfs subvolume create /vservers/.lvref/$sliceimage
+# what is that ?
+#    btrfs subvolume create /vservers/.lvref/lxc-squeeze-x86_64
+    # copy the slice image into the btrfs ?
+    tar -C $sliceimage_dir -cf - $sliceimage | tar -C /vservers/.lvref -xf -
+# we need a smarter way to handle upgrades
+# the original code trashed the ref image that came with an rpm
+#    rm -rf /vservers/lxc-reference-${VERSION}.tgz
+# this would probably cause the image to be re-created upon yum update
+# or prevent updates to make it to the node ?
+#    rm -rf $sliceimage_dir/$sliceimage
+fi
+
+exit 0
