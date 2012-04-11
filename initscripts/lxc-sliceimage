@@ -3,52 +3,60 @@
 # description: Create BTRFS subvolumes for LXC reference images.
 #
 
+# not needed -- Source function library
+#. /etc/init.d/functions
+
+# This is where sliceimage(s) store their reference images
+sliceimage_dir=/vservers/.vref
+lxc_dir=/vservers/.lvref
+
+# Check if we are in the build environment
+function check_node () {
+    mount | grep -q 'planetlab-vservers' || exit 0
+    [ -d $sliceimage_dir ] || { echo "No sliceimage installed" ; exit 1; }
+}
+
+function start () {
+
+    check_node
+
+    sliceimages=$(cd $sliceimage_dir ; ls )
+
+    for sliceimage in $sliceimages; do
+	mkdir -p $lxc_dir
+	# already known to lxc - skip it 
+        # xxx we need a smarter way to handle upgrades
+	[ -d $lxc_dir/$sliceimage ] && continue
+	
+	btrfs subvolume create $lxc_dir/$sliceimage
+        # what is that ?
+	#btrfs subvolume create $lxc_dir/lxc-squeeze-x86_64
+        # copy the slice image into the btrfs ?
+	tar -C $sliceimage_dir -cf - $sliceimage | tar -C $lxc_dir -xf -
+        # the original code trashed the ref image that came with an rpm
+	#rm -rf /vservers/lxc-reference-${VERSION}.tgz
+        # this would probably cause the image to be re-created upon yum update
+        # or prevent updates to make it to the node ?
+	#rm -rf $sliceimage_dir/$sliceimage
+    done
+}
+
+function status () {
+    echo -n "Checking node .. "
+    check_node
+    echo OK
+    echo "From installed sliceimage variants"
+    ls $sliceimage_dir
+    echo "Exported to lxc"
+    ls $lxc_dir
+}
 
 case "$1" in
-    start|restart|reload)
-        ;;
-    force)
-        FORCE=true;;
-    stop|status)
-        exit 0
-        ;;
-    *)
-        echo $"Usage: $0 {start|stop|restart|reload|status|force}"
+    start|restart|reload)	start ; exit 0 ;;
+    status)			status ; exit 0 ;;
+    stop)			exit 0 ;;
+    *)  echo $"Usage: $0 {start|stop|status}"
         exit 1
         ;;
 esac
 
-# Check if we are in the build environment
-mount | grep -q 'planetlab-vservers' || exit 0
-
-# Source function library
-. /etc/init.d/functions
-
-# xxx get version some other way
-# might just want to scan /vservers/.vref instead
-# upgrades (from the real image to the .lvref area) might be challenging
-# xxx 
-
-sliceimage_dir=/vservers/.vref
-
-[ -d $sliceimage_dir ] || exit 0
-
-sliceimages=$(cd $sliceimage_dir ; ls )
-
-for sliceimage in $sliceimages; do
-    mkdir -p /vservers/.lvref
-    [ -d /vservers/.lvref/$sliceimage ] && continue
-    btrfs subvolume create /vservers/.lvref/$sliceimage
-# what is that ?
-#    btrfs subvolume create /vservers/.lvref/lxc-squeeze-x86_64
-    # copy the slice image into the btrfs ?
-    tar -C $sliceimage_dir -cf - $sliceimage | tar -C /vservers/.lvref -xf -
-# we need a smarter way to handle upgrades
-# the original code trashed the ref image that came with an rpm
-#    rm -rf /vservers/lxc-reference-${VERSION}.tgz
-# this would probably cause the image to be re-created upon yum update
-# or prevent updates to make it to the node ?
-#    rm -rf $sliceimage_dir/$sliceimage
-fi
-
-exit 0
