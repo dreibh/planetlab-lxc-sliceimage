@@ -33,6 +33,7 @@ rm -rf $RPM_BUILD_ROOT
 install -D -m 755 initscripts/lxc-sliceimage ${RPM_BUILD_ROOT}/%{_initrddir}/lxc-sliceimage
 install -D -m 644 cron.d/lxc-sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/lxc-sliceimage
 install -D -m 644 logrotate/lxc-sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/lxc-sliceimage
+install -C -m 644 lxc_template.xml $RPM_BUILD_ROOT/vservers/.lvref/lxc_template.xml
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -41,6 +42,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_initrddir}/lxc-sliceimage
 %{_sysconfdir}/cron.d/lxc-sliceimage
 %{_sysconfdir}/logrotate.d/lxc-sliceimage
+/vservers/.lvref
 
 %post
 chkconfig --add lxc-sliceimage
