@@ -30,7 +30,7 @@ function start () {
         # xxx what is that ?
 	#btrfs subvolume create $lxc_dir/lxc-squeeze-x86_64
         # copy the slice image into the btrfs ?
-	rsync -av $sliceimage_dir/$slicefamily/ $lxc_dir/$slicefamily/
+	rsync -av --delete $sliceimage_dir/$slicefamily/ $lxc_dir/$slicefamily/
     done
 }
 
