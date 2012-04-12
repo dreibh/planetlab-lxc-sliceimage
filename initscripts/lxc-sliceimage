@@ -31,6 +31,8 @@ function start () {
 	#btrfs subvolume create $lxc_dir/lxc-squeeze-x86_64
         # copy the slice image into the btrfs ?
 	rsync -av --delete $sliceimage_dir/$slicefamily/ $lxc_dir/$slicefamily/
+	# tmp -- should very probably be done at build time
+	patch_lvref $lxc_dir/$slicefamily
     done
 }
 
@@ -42,6 +44,57 @@ function status () {
     ls $sliceimage_dir
     echo "Exported to lxc"
     ls $lxc_dir
+}
+
+# inspired from https://gist.github.com/1142202
+ETC=/etc/systemd/system
+LIB=/lib/systemd/system
+function patch_lvref () {
+    # this applies to systemd only
+    [ -d $rootfs/$LIB ] || return
+    rootfs=$1; shift
+    # sliceimage comes with graphical.target as default
+    chroot $rootfs ln -sf $LIB/multi-user.target $ETC/default.target
+    # sysinit.target seems to stick on boot, so disable it. However, we need
+    # systemd-tmpfiles-setup.service that was started by the dependency of
+    # sysinit.target to boot up correctly, so start it instead.
+    chroot $rootfs cp $LIB/basic.target $ETC/basic.target
+    chroot $rootfs sed -i 's/sysinit.target/systemd-tmpfiles-setup.service/' $ETC/basic.target
+    # Stop starting sysinit.target. Symlinking one to /dev/null is a standard way
+    # to disable a target (or a service and others).
+    chroot $rootfs ln -s /dev/null $ETC/sysinit.target
+    # It also a cause of stuck on boot
+    chroot $rootfs ln -s /dev/null $ETC/udev-settle.service
+    # It prevents systemd-tmpfiles-setup.service from starting
+    chroot $rootfs ln -s /dev/null $ETC/fedora-readonly.service
+    # Libvirt lxc provides only tty1
+    chroot $rootfs rm -f $ETC/getty.target.wants/getty\@tty{2,3,4,5,6}.service
+    # It launches sulogin on console(tty1) but it interferes getty@tty1
+    chroot $rootfs ln -s /dev/null $ETC/console-shell.service
+    # Workarounds for libvirt 0.9.4. Without this, getty@tty1 doen't launch
+    # because a trigger event on tty1 doesn't happen.
+    chroot $rootfs cp $LIB/getty\@.service $ETC/getty\@.service
+    chroot $rootfs sed -i 's/^BindTo/\#&/' $ETC/getty\@.service
+    chroot $rootfs ln -sf $ETC/getty\@.service $ETC/getty.target.wants/getty\@tty1.service
+    # Allow a user who logins via ssh to sudo
+    chroot $rootfs sed -i 's/^Defaults\ *requiretty/\#&/' /etc/sudoers
+    # Allow to login at virsh console. loginuid.so doen't work in the absence of auditd
+    # which cannot run inside a container.
+    chroot $rootfs sed -i 's/^.*loginuid.so.*$/\#&/' /etc/pam.d/login
+    # Enable eth0 on bootup
+    cat <<EOF > $rootfs/etc/sysconfig/network-scripts/ifcfg-eth0
+DEVICE=eth0
+BOOTPROTO=dhcp
+ONBOOT=yes
+EOF
+    # Tweak sshd configuration
+    chroot $rootfs sed -i 's/^UsePAM\ *yes/\#&/' /etc/ssh/sshd_config
+    chroot $rootfs sed -i 's/^GSSAPIAuthentication\ *yes/\#&/' /etc/ssh/sshd_config
+    chroot $rootfs sed -i 's/^PasswordAuthentication\ *yes/\#&/' /etc/ssh/sshd_config
+    # Allow root to login at virsh console
+    echo "pts/0" >> $rootfs/etc/securetty
+    # our image does not have NetworkManager, only network, and it is off by default
+    chroot $rootfs chkconfig network on
 }
 
 case "$1" in
