@@ -1,6 +1,6 @@
 %define name lxc-sliceimage
 %define version 5.1
-%define taglevel 0
+%define taglevel 1
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
