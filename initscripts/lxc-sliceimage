@@ -89,8 +89,9 @@ ONBOOT=yes
 EOF
     # Tweak sshd configuration
     chroot $rootfs sed -i 's/^UsePAM\ *yes/\#&/' /etc/ssh/sshd_config
-    chroot $rootfs sed -i 's/^GSSAPIAuthentication\ *yes/\#&/' /etc/ssh/sshd_config
-    chroot $rootfs sed -i 's/^PasswordAuthentication\ *yes/\#&/' /etc/ssh/sshd_config
+    # commenting out the defaults in the file is not enough, need to explicitly set these to no
+    chroot $rootfs sed -i 's/^GSSAPIAuthentication.*$/GSSAPIAuthentication no/' /etc/ssh/sshd_config
+    chroot $rootfs sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication no/' /etc/ssh/sshd_config
     # Allow root to login at virsh console
     echo "pts/0" >> $rootfs/etc/securetty
     # our image does not have NetworkManager, only network, and it is off by default
