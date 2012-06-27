@@ -75,12 +75,12 @@ fi
 
 # Build reference images for system slices
 # xxx if several instances of systemslices get installed, only one gets instanciated
-for systemslice in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
+for clonedstamp in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
     # e.g. NAME=planetflow
-    NAME=$(basename $systemslice .cloned)
-    DIR=$(dirname $systemslice)
+    NAME=$(basename $clonedstamp .cloned)
+    DIR=$(dirname $clonedstamp)
     # e.g. SLICEFAMILY=planetlab-f8-i386
-    SLICEFAMILY=$(cat $systemslice)
+    SLICEFAMILY=$(cat $clonedstamp)
     # deduce the actual name used in .vref by replacing the first part of slice-family 
     # (pldistro) with the slice name
     # e.g. VREFNAME=planetflow-f8-i386
