@@ -1,6 +1,10 @@
 #!/bin/bash
+#
 # chkconfig: 345 20 80
 # description: Create BTRFS subvolumes for LXC reference images.
+#
+# Thierry Parmentelat <thierry.parmentelat@inria.fr>
+# Copyright (C) 2012 INRIA
 #
 
 # not needed -- Source function library
@@ -8,7 +12,9 @@
 
 # This is where sliceimage(s) store their reference images
 sliceimage_dir=/vservers/.vref
+sliceimage_stubs=/vservers/.vstub
 lxc_dir=/vservers/.lvref
+tmp_dir=/vservers/.ltmp
 
 # Check if we are in the build environment
 function check_node () {
@@ -30,10 +36,13 @@ function start () {
         # xxx what is that ?
 	#btrfs subvolume create $lxc_dir/lxc-squeeze-x86_64
         # copy the slice image into the btrfs ?
-	rsync -av --delete $sliceimage_dir/$slicefamily/ $lxc_dir/$slicefamily/
+	rsync -a --delete $sliceimage_dir/$slicefamily/ $lxc_dir/$slicefamily/
 	# tmp -- should very probably be done at build time
 	patch_lvref $lxc_dir/$slicefamily
     done
+
+    # create ref images from stubs
+    unfold_system_slices
 }
 
 function status () {
@@ -96,6 +105,61 @@ EOF
     echo "pts/0" >> $rootfs/etc/securetty
     # our image does not have NetworkManager, only network, and it is off by default
     chroot $rootfs chkconfig network on
+}
+
+function unfold_system_slices () {
+    for clonedstamp in $sliceimage_stubs/*/*.cloned; do
+	unfold_system_slice_from_cloned $clonedstamp
+    done
+}
+
+function unfold_system_slice_from_cloned () {
+    clonedstamp=$1; shift
+    # e.g. NAME=planetflow
+    NAME=$(basename $clonedstamp .cloned)
+    DIR=$(dirname $clonedstamp)
+    # e.g. SLICEFAMILY=planetlab-f8-i386
+    SLICEFAMILY=$(cat $clonedstamp)
+    # deduce the actual name used in .vref by replacing the first part of slice-family 
+    # (pldistro) with the slice name
+    # e.g. VREFNAME=planetflow-f8-i386
+    VREFNAME=$(echo $SLICEFAMILY | sed -e "s,^[^-]*-,$NAME-,")
+
+    VREFPATH="$lxc_dir/$VREFNAME"
+
+    # do not redo existing vref's unless force is mentioned
+    [ -z "$FORCE" -a -d "$VREFPATH" ] && continue
+    [ -z "$FORCE" ] && message=Building
+    [ -n "$FORCE" ] && message=Force-building
+
+    # Copy base reference image
+    echo -n $"$message slice image for $NAME in $VREFNAME: "
+
+    # build the systemslice from the one it was originally cloned from
+    FAMILYREF="$lxc_dir/$SLICEFAMILY"
+    if [ ! -d "$FAMILYREF" ] ; then
+	echo system slice from $clonedstamp - could not find reference $FAMILYREF - skipped
+	return
+    fi
+    
+    # safe side
+    mkdir -p "$lxc_dir"
+    # cleanup reference image if already exists
+    [ -d "$VREFPATH" ] && btrfs subvolume delete "$VREFPATH"
+    # extra safe
+    [ -d "$VREFPATH" ] && rm -rf "$VREFPATH"
+
+    # clone subvolume
+    btrfs subvolume snapshot $FAMILYREF $VREFPATH
+    
+    # merge the stub with the reference to get the system slice
+    (cd "$DIR/$NAME"/ && find . | cpio -m -d -u -p "$VREFPATH"/) || \
+	{ echo "Could not apply stub $DIR/$NAME - skipping $clonedstamp" ; btrfs subvolume delete "$VREFPATH" ; return ; }
+
+    # Clean RPM state
+    rm -f "$VREFPATH/var/lib/rpm/__db"*
+
+    echo Done
 }
 
 case "$1" in
