@@ -9,7 +9,7 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 2
+%define taglevel 3
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -103,6 +103,9 @@ for initscript in /etc/init.d/*sliceimage*; do $initscript force ; done
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Wed Oct 24 2012 Andy Bavier <acb@cs.princeton.edu> - sliceimage-5.1-3
+- More flexible <interface> element generation
+
 * Mon Jul 09 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-2
 - for linux-containers: populates refs from stubs (for system slices)
 - for linux-containers: memory bump to 512M, and add acpi
