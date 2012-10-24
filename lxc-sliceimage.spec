@@ -18,6 +18,7 @@ License: GPL
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Requires: btrfs-progs
+Requires: nodemanager-lxc >= 2.1-12
 BuildArch: noarch
 
 %description
