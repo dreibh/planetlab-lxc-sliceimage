@@ -9,7 +9,7 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 3
+%define taglevel 4
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -103,6 +103,9 @@ for initscript in /etc/init.d/*sliceimage*; do $initscript force ; done
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Fri May 24 2013 Andy Bavier <acb@cs.princeton.edu> - sliceimage-5.1-4
+- Fix machine arch in slivers
+
 * Wed Oct 24 2012 Andy Bavier <acb@cs.princeton.edu> - sliceimage-5.1-3
 - More flexible <interface> element generation
 
