@@ -2,7 +2,7 @@
   <name>$name</name>
   <memory>524288</memory>
   <os>
-    <type>exe</type>
+    <type arch='$arch'>exe</type>
     <init>/sbin/init</init>
   </os>
   <features>
