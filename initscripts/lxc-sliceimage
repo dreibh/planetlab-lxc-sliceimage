@@ -10,6 +10,10 @@
 # not needed -- Source function library
 #. /etc/init.d/functions
 
+# a f>=18 root context won't have /bin nor /sbin in its path, which is where
+# chkconfig is located on f<=14 images
+export PATH=$PATH:/bin:/sbin
+
 # This is where sliceimage(s) store their reference images
 sliceimage_dir=/vservers/.vref
 sliceimage_stubs=/vservers/.vstub
