@@ -59,13 +59,44 @@ function status () {
     ls $lxc_dir
 }
 
+# beware that patch_lvref_systemd will return early on non systemd-powered images
+function patch_lvref () {
+    rootfs=$1; shift
+    
+    # Allow a user who logins via ssh to sudo
+    chroot $rootfs sed -i 's/^Defaults\ *requiretty/\#&/' /etc/sudoers
+    # Allow to login at virsh console. loginuid.so doen't work in the absence of auditd
+    # which cannot run inside a container.
+    chroot $rootfs sed -i 's/^.*loginuid.so.*$/\#&/' /etc/pam.d/login
+    # Enable eth0 on bootup
+    cat <<EOF > $rootfs/etc/sysconfig/network-scripts/ifcfg-eth0
+DEVICE=eth0
+BOOTPROTO=dhcp
+ONBOOT=yes
+EOF
+    # Tweak sshd configuration
+    chroot $rootfs sed -i 's/^UsePAM\ *yes/\#&/' /etc/ssh/sshd_config
+    # commenting out the defaults in the file is not enough, need to explicitly set these to no
+    chroot $rootfs sed -i 's/^GSSAPIAuthentication.*$/GSSAPIAuthentication no/' /etc/ssh/sshd_config
+    chroot $rootfs sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication no/' /etc/ssh/sshd_config
+    # Allow root to login at virsh console
+    echo "pts/0" >> $rootfs/etc/securetty
+    # our image does not have NetworkManager, only network, and it is off by default
+    chroot $rootfs chkconfig network on
+
+    # this will run only if the rootfs seems to be systemd-based
+    patch_lvref_systemd $rootfs
+}
+
 # inspired from https://gist.github.com/1142202
 ETC=/etc/systemd/system
 LIB=/lib/systemd/system
-function patch_lvref () {
+function patch_lvref_systemd () {
+    rootfs=$1; shift
+
     # this applies to systemd only
     [ -d $rootfs/$LIB ] || return
-    rootfs=$1; shift
+
     # sliceimage comes with graphical.target as default
     chroot $rootfs ln -sf $LIB/multi-user.target $ETC/default.target
     # sysinit.target seems to stick on boot, so disable it. However, we need
@@ -89,26 +120,7 @@ function patch_lvref () {
     chroot $rootfs cp $LIB/getty\@.service $ETC/getty\@.service
     chroot $rootfs sed -i 's/^BindTo/\#&/' $ETC/getty\@.service
     chroot $rootfs ln -sf $ETC/getty\@.service $ETC/getty.target.wants/getty\@tty1.service
-    # Allow a user who logins via ssh to sudo
-    chroot $rootfs sed -i 's/^Defaults\ *requiretty/\#&/' /etc/sudoers
-    # Allow to login at virsh console. loginuid.so doen't work in the absence of auditd
-    # which cannot run inside a container.
-    chroot $rootfs sed -i 's/^.*loginuid.so.*$/\#&/' /etc/pam.d/login
-    # Enable eth0 on bootup
-    cat <<EOF > $rootfs/etc/sysconfig/network-scripts/ifcfg-eth0
-DEVICE=eth0
-BOOTPROTO=dhcp
-ONBOOT=yes
-EOF
-    # Tweak sshd configuration
-    chroot $rootfs sed -i 's/^UsePAM\ *yes/\#&/' /etc/ssh/sshd_config
-    # commenting out the defaults in the file is not enough, need to explicitly set these to no
-    chroot $rootfs sed -i 's/^GSSAPIAuthentication.*$/GSSAPIAuthentication no/' /etc/ssh/sshd_config
-    chroot $rootfs sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication no/' /etc/ssh/sshd_config
-    # Allow root to login at virsh console
-    echo "pts/0" >> $rootfs/etc/securetty
-    # our image does not have NetworkManager, only network, and it is off by default
-    chroot $rootfs chkconfig network on
+
 }
 
 function unfold_system_slices () {
