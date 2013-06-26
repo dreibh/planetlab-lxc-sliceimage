@@ -9,7 +9,7 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 4
+%define taglevel 5
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -103,6 +103,10 @@ for initscript in /etc/init.d/*sliceimage*; do $initscript force ; done
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Wed Jun 26 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-5
+- fixes for heterogeneous slice/nodes
+- addresses PATH and missing eth0 among others
+
 * Fri May 24 2013 Andy Bavier <acb@cs.princeton.edu> - sliceimage-5.1-4
 - Fix machine arch in slivers
 
