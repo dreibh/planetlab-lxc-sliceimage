@@ -14,7 +14,7 @@
 # chkconfig is located on f<=14 images
 export PATH=$PATH:/bin:/sbin
 
-# This is where sliceimage(s) store their reference images
+# This is where sliceimage(s) rpms store their reference images
 sliceimage_dir=/vservers/.vref
 sliceimage_stubs=/vservers/.vstub
 lxc_dir=/vservers/.lvref
@@ -28,6 +28,9 @@ function check_node () {
 
 function start () {
 
+    echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    echo "lxc-sliceimage: starting on $(date)"
+
     check_node
     
     mkdir -p $lxc_dir
@@ -35,18 +38,32 @@ function start () {
     slicefamilies=$(cd $sliceimage_dir ; ls )
 
     for slicefamily in $slicefamilies; do
+	echo ==================== $slicefamily
 	# initialize if needed
-	[ -d $lxc_dir/$slicefamily ] || btrfs subvolume create $lxc_dir/$slicefamily
+	[ -d $lxc_dir/$slicefamily ] || { 
+	    echo "creating btrfs subvolume" ; 
+	    btrfs subvolume create $lxc_dir/$slicefamily ;
+	}
         # xxx what is that ?
 	#btrfs subvolume create $lxc_dir/lxc-squeeze-x86_64
         # copy the slice image into the btrfs ?
-	rsync -a --delete $sliceimage_dir/$slicefamily/ $lxc_dir/$slicefamily/
-	# tmp -- should very probably be done at build time
+#	echo "============================== mirroring start $(date)"
+	echo "$sliceimage_dir/$slicefamily/ onto btrfs subvolume $lxc_dir/$slicefamily/"
+	# mention --delete for rpm updates
+	# we want to keep only our own additions, that will be re-created in the remaining 
+	# of this script anyway
+	rsync -a --delete $sliceimage_dir/$slicefamily/ $lxc_dir/$slicefamily/ 
+#	echo "============================== mirroring done $(date)"
+	# adapting slice images to the node virtualization mode can unfortunately
+	# not be done at build-time since we do not know that yet
 	patch_lvref $lxc_dir/$slicefamily
     done
 
     # create ref images from stubs
     unfold_system_slices
+
+    echo "lxc-sliceimage: done on $(date)"
+    echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 }
 
 function status () {
@@ -59,26 +76,35 @@ function status () {
     ls $lxc_dir
 }
 
-# beware that patch_lvref_systemd will return early on non systemd-powered images
+# prefer to use e.g.
+# sed -i $rootfs/etc/sudoers
+# rather than
+# chroot $rootfs sed -i /etc/sudoers
+# because the latter has sed issue weird messages like
+# sed: warning: failed to get security context of ...
 function patch_lvref () {
     rootfs=$1; shift
+
+    echo "patch_lvref : handling $rootfs"
     
     # Allow a user who logins via ssh to sudo
-    chroot $rootfs sed -i 's/^Defaults\ *requiretty/\#&/' /etc/sudoers
+    sed -i 's/^Defaults\ *requiretty/\#&/' $rootfs/etc/sudoers
     # Allow to login at virsh console. loginuid.so doen't work in the absence of auditd
     # which cannot run inside a container.
-    chroot $rootfs sed -i 's/^.*loginuid.so.*$/\#&/' /etc/pam.d/login
+    sed -i 's/^.*loginuid.so.*$/\#&/' $rootfs/etc/pam.d/login
     # Enable eth0 on bootup
     cat <<EOF > $rootfs/etc/sysconfig/network-scripts/ifcfg-eth0
 DEVICE=eth0
 BOOTPROTO=dhcp
 ONBOOT=yes
 EOF
-    # Tweak sshd configuration
-    chroot $rootfs sed -i 's/^UsePAM\ *yes/\#&/' /etc/ssh/sshd_config
-    # commenting out the defaults in the file is not enough, need to explicitly set these to no
-    chroot $rootfs sed -i 's/^GSSAPIAuthentication.*$/GSSAPIAuthentication no/' /etc/ssh/sshd_config
-    chroot $rootfs sed -i 's/^PasswordAuthentication.*$/PasswordAuthentication no/' /etc/ssh/sshd_config
+    # Tweak sshd configuration - not all slice images have sshd preinstalled
+    if [ -f $rootfs/etc/ssh/sshd_config ] ; then
+	sed -e 's/^UsePAM\ *yes/\#&/' \
+	    -e 's/^GSSAPIAuthentication.*$/GSSAPIAuthentication no/' \
+	    -e 's/^PasswordAuthentication.*$/PasswordAuthentication no/' \
+	    -i $rootfs/etc/ssh/sshd_config
+    fi
     # Allow root to login at virsh console
     echo "pts/0" >> $rootfs/etc/securetty
     # our image does not have NetworkManager, only network, and it is off by default
@@ -88,38 +114,45 @@ EOF
     patch_lvref_systemd $rootfs
 }
 
+# beware that patch_lvref_systemd will return early on non systemd-powered images
 # inspired from https://gist.github.com/1142202
 ETC=/etc/systemd/system
 LIB=/lib/systemd/system
+
 function patch_lvref_systemd () {
     rootfs=$1; shift
 
-    # this applies to systemd only
-    [ -d $rootfs/$LIB ] || return
+    absetc=$rootfs/$ETC
+    abslib=$rootfs/$LIB
 
+    # this applies to systemd only
+    [ -d $abslib ] || return
+
+    # stay away from trouble, avoid chroot'ing for straightforward stuff
+    echo "patch_lvref_systemd: handling $rootfs"
     # sliceimage comes with graphical.target as default
-    chroot $rootfs ln -sf $LIB/multi-user.target $ETC/default.target
+    ln -sf $LIB/multi-user.target $absetc/default.target
     # sysinit.target seems to stick on boot, so disable it. However, we need
     # systemd-tmpfiles-setup.service that was started by the dependency of
     # sysinit.target to boot up correctly, so start it instead.
-    chroot $rootfs cp $LIB/basic.target $ETC/basic.target
-    chroot $rootfs sed -i 's/sysinit.target/systemd-tmpfiles-setup.service/' $ETC/basic.target
+    cp $abslib/basic.target $absetc/basic.target
+    sed -e 's/sysinit.target/systemd-tmpfiles-setup.service/' -i $absetc/basic.target
     # Stop starting sysinit.target. Symlinking one to /dev/null is a standard way
     # to disable a target (or a service and others).
-    chroot $rootfs ln -s /dev/null $ETC/sysinit.target
-    # It also a cause of stuck on boot
-    chroot $rootfs ln -s /dev/null $ETC/udev-settle.service
+    ln -sf /dev/null $absetc/sysinit.target
+    # is also a cause of stuck on boot
+    ln -sf /dev/null $absetc/udev-settle.service
     # It prevents systemd-tmpfiles-setup.service from starting
-    chroot $rootfs ln -s /dev/null $ETC/fedora-readonly.service
+    ln -sf /dev/null $absetc/fedora-readonly.service
     # Libvirt lxc provides only tty1
-    chroot $rootfs rm -f $ETC/getty.target.wants/getty\@tty{2,3,4,5,6}.service
+    rm -f $absetc/getty.target.wants/getty\@tty{2,3,4,5,6}.service
     # It launches sulogin on console(tty1) but it interferes getty@tty1
-    chroot $rootfs ln -s /dev/null $ETC/console-shell.service
+    ln -sf /dev/null $absetc/console-shell.service
     # Workarounds for libvirt 0.9.4. Without this, getty@tty1 doen't launch
     # because a trigger event on tty1 doesn't happen.
-    chroot $rootfs cp $LIB/getty\@.service $ETC/getty\@.service
-    chroot $rootfs sed -i 's/^BindTo/\#&/' $ETC/getty\@.service
-    chroot $rootfs ln -sf $ETC/getty\@.service $ETC/getty.target.wants/getty\@tty1.service
+    cp $abslib/getty\@.service $absetc/getty\@.service
+    sed -e 's/^BindTo/\#&/' -i $absetc/getty\@.service
+    ln -sf $ETC/getty\@.service $absetc/getty.target.wants/getty\@tty1.service
 
 }
 
@@ -129,6 +162,9 @@ function unfold_system_slices () {
     done
 }
 
+# untested - how does this behave when updating the slice reference image ?
+# OTOH system slices probably already run at update-time 
+# so it's kind of too late anyways
 function unfold_system_slice_from_cloned () {
     clonedstamp=$1; shift
     # e.g. NAME=planetflow
@@ -144,7 +180,10 @@ function unfold_system_slice_from_cloned () {
     VREFPATH="$lxc_dir/$VREFNAME"
 
     # do not redo existing vref's unless force is mentioned
-    [ -z "$FORCE" -a -d "$VREFPATH" ] && continue
+    [ -z "$FORCE" -a -d "$VREFPATH" ] && {
+	echo "unfold_system_slice_from_cloned : $VREFPATH looks fine" ;
+	return ;
+    }
     [ -z "$FORCE" ] && message=Building
     [ -n "$FORCE" ] && message=Force-building
 
@@ -178,12 +217,17 @@ function unfold_system_slice_from_cloned () {
     echo Done
 }
 
+# run with the --tty option to see results, otherwise get that logged
+case "$1" in
+    --tty) shift;;
+    *) exec >> /var/log/lxc-sliceimage.log 2>&1 ;;
+esac
+
 case "$1" in
     start|restart|reload)	start ; exit 0 ;;
     status)			status ; exit 0 ;;
     stop)			exit 0 ;;
-    *)  echo $"Usage: $0 {start|stop|status}"
+    *)  echo $"Usage: $0 [--tty] {start|stop|status}"
         exit 1
         ;;
 esac
-
