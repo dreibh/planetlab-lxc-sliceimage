@@ -9,7 +9,7 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 5
+%define taglevel 6
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -103,6 +103,12 @@ for initscript in /etc/init.d/*sliceimage*; do $initscript force ; done
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Wed Jul 03 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-6
+- attempt to make lxc-sliceimage (update lxc ref. images) more robust
+- in particular by avoiding chroot when simple file operations are involved
+- also this activity gets logged into /var/log/lxc-sliceimage.log
+- it is still unclear whether stub-based images are correctly updated
+
 * Wed Jun 26 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-5
 - fixes for heterogeneous slice/nodes
 - addresses PATH and missing eth0 among others
