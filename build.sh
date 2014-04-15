@@ -74,6 +74,8 @@ systemslice_count=$(ls ../build/config.${pldistro}/sliceimage-*.pkgs 2> /dev/nul
     # "Parse" out the packages and groups for yum
     systempackages=$(pl_getPackages ${pl_DISTRO_NAME} $pldistro $systemslice)
     systemgroups=$(pl_getGroups ${pl_DISTRO_NAME} $pldistro $systemslice)
+    systempips=$(pl_getPips ${pl_DISTRO_NAME} $pldistro $systemslice)
+    systemgems=$(pl_getGems ${pl_DISTRO_NAME} $pldistro $systemslice)
 
     vdir=${vstubdir}/${NAME}
     rm -rf ${vdir}/*
@@ -91,6 +93,19 @@ systemslice_count=$(ls ../build/config.${pldistro}/sliceimage-*.pkgs 2> /dev/nul
     for group_plus in $systemgroups; do
 	group=$(echo $group_plus | sed -e "s,+++, ,g")
         yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y groupinstall "$group"
+    done
+
+    # this requires pip to be available in sliceimage at that point
+    # fedora and debian -> python-pip
+    # on fedora the command is called pip-python (sigh.)
+    for pip in $systempips; do
+	chroot ${vdir} pip -v install $pip || chroot ${vdir} pip-python -v $pip || :
+    done
+
+    # same for gems; comes with ruby in fedora but ruby-devel is most likely a good thing
+    # we add --no-rdoc --no-ri to keep it low
+    for gem in $systemgems; do
+	chroot ${vdir} gem install --no-rdoc --no-ri $gem || :
     done
 
     # search e.g. sliceimage-planetflow.post in config.<pldistro> or in config.planetlab otherwise
