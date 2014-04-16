@@ -89,9 +89,13 @@ systemslice_count=$(ls ../build/config.${pldistro}/sliceimage-*.pkgs 2> /dev/nul
     echo ${slicefamily} > ${vdir}.cloned
 
     # Install the system sliceimage specific packages
-    [ -n "$systempackages" ] && yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y install $systempackages
+    for yum_package in $systempackages; do
+	echo " * yum installing $yum_package"
+	yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y install $yum_package
+    done
     for group_plus in $systemgroups; do
 	group=$(echo $group_plus | sed -e "s,+++, ,g")
+	echo " * yum groupinstalling $group"
         yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y groupinstall "$group"
     done
 
@@ -99,13 +103,15 @@ systemslice_count=$(ls ../build/config.${pldistro}/sliceimage-*.pkgs 2> /dev/nul
     # fedora and debian -> python-pip
     # on fedora the command is called pip-python (sigh.)
     for pip in $systempips; do
-	chroot ${vdir} pip -v install $pip || chroot ${vdir} pip-python -v $pip || :
+	echo " * pip installing $pip"
+	chroot ${vdir} pip -v install $pip || chroot ${vdir} pip-python -v $pip || echo " * FAILURE with pip $pip"
     done
 
     # same for gems; comes with ruby in fedora but ruby-devel is most likely a good thing
     # we add --no-rdoc --no-ri to keep it low
     for gem in $systemgems; do
-	chroot ${vdir} gem install --no-rdoc --no-ri $gem || :
+	echo " * gem installing $gem"
+	chroot ${vdir} gem install --no-rdoc --no-ri $gem || echo " * FAILURE with gem $gem"
     done
 
     # search e.g. sliceimage-planetflow.post in config.<pldistro> or in config.planetlab otherwise
