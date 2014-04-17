@@ -69,7 +69,7 @@ systemslice_count=$(ls ../build/config.${pldistro}/sliceimage-*.pkgs 2> /dev/nul
 [ $systemslice_count -gt 0 ] && for systemslice in $(ls ../build/config.${pldistro}/sliceimage-*.pkgs) ; do
     NAME=$(basename $systemslice .pkgs | sed -e s,sliceimage-,,)
 
-    echo "--------START BUILDING system sliceimage ${NAME}: $(date)"
+    echo " * --------START BUILDING system sliceimage ${NAME}: $(date)"
 
     # "Parse" out the packages and groups for yum
     systempackages=$(pl_getPackages ${pl_DISTRO_NAME} $pldistro $systemslice)
@@ -91,12 +91,14 @@ systemslice_count=$(ls ../build/config.${pldistro}/sliceimage-*.pkgs 2> /dev/nul
     # Install the system sliceimage specific packages
     for yum_package in $systempackages; do
 	echo " * yum installing $yum_package"
-	yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y install $yum_package
+	yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y install $yum_package || \
+	    echo " * WARNING image $systemslice - yum install $yum_package failed"
     done
     for group_plus in $systemgroups; do
-	group=$(echo $group_plus | sed -e "s,+++, ,g")
-	echo " * yum groupinstalling $group"
-        yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y groupinstall "$group"
+	yum_group=$(echo $group_plus | sed -e "s,+++, ,g")
+	echo " * yum groupinstalling $yum_group"
+        yum -c ${vdir}/etc/mkfedora-yum.conf --installroot=${vdir} -y groupinstall "$yum_group" || \
+	    echo " * WARNING image $systemslice - yum groupinstall $yum_group failed"
     done
 
     # this requires pip to be available in sliceimage at that point
@@ -104,14 +106,16 @@ systemslice_count=$(ls ../build/config.${pldistro}/sliceimage-*.pkgs 2> /dev/nul
     # on fedora the command is called pip-python (sigh.)
     for pip in $systempips; do
 	echo " * pip installing $pip"
-	chroot ${vdir} pip -v install $pip || chroot ${vdir} pip-python -v $pip || echo " * FAILURE with pip $pip"
+	chroot ${vdir} pip -v install $pip || chroot ${vdir} pip-python -v $pip || \
+	    echo " * WARNING image $systemslice - pip install $pip failed"
     done
 
     # same for gems; comes with ruby in fedora but ruby-devel is most likely a good thing
     # we add --no-rdoc --no-ri to keep it low
     for gem in $systemgems; do
 	echo " * gem installing $gem"
-	chroot ${vdir} gem install --no-rdoc --no-ri $gem || echo " * FAILURE with gem $gem"
+	chroot ${vdir} gem install --no-rdoc --no-ri $gem || \
+	    echo " * WARNING image $systemslice - gem install $gem failed"
     done
 
     # search e.g. sliceimage-planetflow.post in config.<pldistro> or in config.planetlab otherwise
@@ -149,7 +153,7 @@ systemslice_count=$(ls ../build/config.${pldistro}/sliceimage-*.pkgs 2> /dev/nul
     # cleanup yum remainings
     rm -rf ${vdir}/build ${vdir}/longbuildroot
 
-    echo "--------DONE BUILDING system sliceimage ${NAME}: $(date)"
+    echo " * --------DONE BUILDING system sliceimage ${NAME}: $(date)"
 done
 
 # search sliceimage.post in config.<pldistro> or in config.planetlab otherwise
