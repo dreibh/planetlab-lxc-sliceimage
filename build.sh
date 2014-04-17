@@ -101,6 +101,11 @@ systemslice_count=$(ls ../build/config.${pldistro}/sliceimage-*.pkgs 2> /dev/nul
 	    echo " * WARNING image $systemslice - yum groupinstall $yum_group failed"
     done
 
+    # running pip or gem requires connectivity, and DNS
+    # so we expose the build-vm's /etc/resolv.conf to the current vdir 
+    mkdir -p ${vdir}/etc
+    cp /etc/resolv.conf ${vdir}/etc
+
     # this requires pip to be available in sliceimage at that point
     # fedora and debian -> python-pip
     # on fedora the command is called pip-python (sigh.)
