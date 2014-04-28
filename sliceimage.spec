@@ -9,7 +9,7 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 6
+%define taglevel 7
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -103,6 +103,10 @@ for initscript in /etc/init.d/*sliceimage*; do $initscript force ; done
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Mon Apr 28 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-7
+- can build pips and gems in sliceimage (currently only gem used in omf)
+- requires a recent build/pkgs.py if pkgs file does mention pip or gem
+
 * Wed Jul 03 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-6
 - attempt to make lxc-sliceimage (update lxc ref. images) more robust
 - in particular by avoiding chroot when simple file operations are involved
