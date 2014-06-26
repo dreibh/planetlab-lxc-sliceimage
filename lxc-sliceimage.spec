@@ -35,7 +35,7 @@ A simple package to deploy reference images for lxc
 %install
 rm -rf $RPM_BUILD_ROOT
 install -D -m 755 initscripts/lxc-sliceimage ${RPM_BUILD_ROOT}/%{_bindir}/lxc-sliceimage
-install -D -m 644 lxc-sliceimage.service ${RPM_BUILD_ROOT}/%{initdir}/lxc-sliceimage.service
+install -D -m 644 lxc-sliceimage.service ${RPM_BUILD_ROOT}/lib/systemd/system/lxc-sliceimage.service
 install -D -m 644 cron.d/lxc-sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/lxc-sliceimage
 install -D -m 644 logrotate/lxc-sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/lxc-sliceimage
 install -D -m 644 lxc_template.xml $RPM_BUILD_ROOT/vservers/.lvref/lxc_template.xml

@@ -1,11 +1,12 @@
 [Unit]
-Description=LXC Slice Image service
-Before=nm.target
+Description=LXC Sliceimage service
+Before=nm.service
 
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/lxc-sliceimage start
 ExecStop=/usr/bin/lxc-sliceimage stop
+ExecReload=/usr/bin/lxc-sliceimage reload
 
 [Install]
 WantedBy=multi-user.target
