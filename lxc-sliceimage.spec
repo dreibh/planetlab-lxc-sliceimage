@@ -19,6 +19,7 @@ Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Requires: btrfs-progs
 Requires: nodemanager-lxc >= 5.2-3
+Requires: systemd
 BuildArch: noarch
 
 %description
@@ -31,7 +32,8 @@ A simple package to deploy reference images for lxc
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -D -m 755 initscripts/lxc-sliceimage ${RPM_BUILD_ROOT}/%{_initrddir}/lxc-sliceimage
+install -D -m 755 initscripts/lxc-sliceimage ${RPM_BUILD_ROOT}/%{_bindir}/lxc-sliceimage
+install -D -m 644 lxc-sliceimage.service /usr/lib/systemd/system/lxc-sliceimage.service
 install -D -m 644 cron.d/lxc-sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/lxc-sliceimage
 install -D -m 644 logrotate/lxc-sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/lxc-sliceimage
 install -D -m 644 lxc_template.xml $RPM_BUILD_ROOT/vservers/.lvref/lxc_template.xml
@@ -40,14 +42,25 @@ install -D -m 644 lxc_template.xml $RPM_BUILD_ROOT/vservers/.lvref/lxc_template.
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%{_initrddir}/lxc-sliceimage
+%{_bindir}/lxc-sliceimage
+/usr/lib/systemd/system/lxc-sliceimage.service
 %{_sysconfdir}/cron.d/lxc-sliceimage
 %{_sysconfdir}/logrotate.d/lxc-sliceimage
 /vservers/.lvref
 
 %post
-chkconfig --add lxc-sliceimage
-chkconfig lxc-sliceimage on
+systemctl enable lxc-sliceimage.service
+if [ "$PL_BOOTCD" != "1" ] ; then
+   systemctl restart lxc-sliceimage.service
+fi
+
+%preun
+# 0 = erase, 1 = upgrade
+if [ $1 -eq 0 ] ; then
+    systemctl disable lxc-sliceimage.service
+fi
+%endif
+
 # Randomize daily run time
 M=$((60 * $RANDOM / 32768))
 H=$((24 * $RANDOM / 32768))
