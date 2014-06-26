@@ -9,6 +9,8 @@ Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
 URL: %{SCMURL}
 
+%define initdir /usr/lib/systemd/system
+
 Summary: lxc-specific node code for slice families
 Name: %{name}
 Version: %{version}
@@ -33,7 +35,7 @@ A simple package to deploy reference images for lxc
 %install
 rm -rf $RPM_BUILD_ROOT
 install -D -m 755 initscripts/lxc-sliceimage ${RPM_BUILD_ROOT}/%{_bindir}/lxc-sliceimage
-install -D -m 644 lxc-sliceimage.service /usr/lib/systemd/system/lxc-sliceimage.service
+install -D -m 644 lxc-sliceimage.service ${RPM_BUILD_ROOT}/%{initdir}/lxc-sliceimage.service
 install -D -m 644 cron.d/lxc-sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/cron.d/lxc-sliceimage
 install -D -m 644 logrotate/lxc-sliceimage $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/lxc-sliceimage
 install -D -m 644 lxc_template.xml $RPM_BUILD_ROOT/vservers/.lvref/lxc_template.xml
@@ -43,7 +45,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %{_bindir}/lxc-sliceimage
-/usr/lib/systemd/system/lxc-sliceimage.service
+%{initdir}/
 %{_sysconfdir}/cron.d/lxc-sliceimage
 %{_sysconfdir}/logrotate.d/lxc-sliceimage
 /vservers/.lvref
@@ -59,7 +61,6 @@ fi
 if [ $1 -eq 0 ] ; then
     systemctl disable lxc-sliceimage.service
 fi
-%endif
 
 # Randomize daily run time
 M=$((60 * $RANDOM / 32768))
