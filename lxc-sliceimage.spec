@@ -43,7 +43,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %{_bindir}/lxc-sliceimage
-%{initdir}/
+/lib/systemd/system/lxc-sliceimage.service
 %{_sysconfdir}/cron.d/lxc-sliceimage
 %{_sysconfdir}/logrotate.d/lxc-sliceimage
 /vservers/.lvref
