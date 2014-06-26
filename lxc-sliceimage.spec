@@ -9,8 +9,6 @@ Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
 URL: %{SCMURL}
 
-%define initdir /usr/lib/systemd/system
-
 Summary: lxc-specific node code for slice families
 Name: %{name}
 Version: %{version}
