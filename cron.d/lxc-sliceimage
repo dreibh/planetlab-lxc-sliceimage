@@ -6,4 +6,4 @@
 # Copyright (C) 2006 The Trustees of Princeton University
 #
 
-@M@ @H@ * * *	root	/etc/init.d/lxc-sliceimage start >/dev/null 2>&1
+@M@ @H@ * * *	root	/usr/bin/lxc-sliceimage start >/dev/null 2>&1
