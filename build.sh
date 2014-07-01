@@ -169,6 +169,14 @@ postfile=$(pl_locateDistroFile ../build/ ${pldistro} sliceimage.post)
 # fix sudoers config
 [ -f ${vref}/etc/sudoers ] && echo -e "\nDefaults\tlogfile=/var/log/sudo\n" >> ${vref}/etc/sudoers
 
+# make sure 32bit slice images have the right yum config in /etc/yum/vars
+# this issue showed on a f18 64bits node hosting a f14 32bits sliver
+# this workaround probably means the 32bits sliver does not properly run as a 32bits VM
+grep -q i386 ${vref}/etc/slicefamily && {
+    echo i686 > ${vref}/etc/yum/vars/arch 
+    echo i386 > /etc/yum/vars/basearch
+}
+
 # cleanup yum remainings
 rm -rf ${vref}/build ${vref}/longbuildroot
 
