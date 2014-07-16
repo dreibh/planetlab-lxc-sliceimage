@@ -1,6 +1,6 @@
 %define name vserver-sliceimage
 %define version 5.1
-%define taglevel 7
+%define taglevel 8
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 

@@ -9,7 +9,7 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 7
+%define taglevel 8
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -103,6 +103,9 @@ for initscript in /etc/init.d/*sliceimage*; do $initscript force ; done
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Wed Jul 16 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-8
+- use systemd unit files to initialize lxc-sliceimage instead of a sysv script
+
 * Mon Apr 28 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-7
 - can build pips and gems in sliceimage (currently only gem used in omf)
 - requires a recent build/pkgs.py if pkgs file does mention pip or gem
