@@ -106,7 +106,7 @@ fi
 # remove explicit reference to vserver, find out all relevant scripts
 initScripts=`find /etc/init.d/ -name '*sliceimage*'`
 if [ "$initScripts" != "" ] ; then
-   for initscript in $initScripts ; do $initscript start ; done
+   for initscript in $initScripts ; do $initscript force ; done
 fi
 
 
