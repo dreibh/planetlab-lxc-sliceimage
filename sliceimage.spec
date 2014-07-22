@@ -113,6 +113,10 @@ fi
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Tue Jul 22 2014 Thomas Dreibholz <dreibh@simula.no> - sliceimage-5.1-9
+- Post-install fix: exit instead of return
+- Post-install fix: only call init script when there are init scripts
+
 * Wed Jul 16 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-8
 - use systemd unit files to initialize lxc-sliceimage instead of a sysv script
 
