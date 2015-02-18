@@ -9,7 +9,7 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 8
+%define taglevel 9
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
