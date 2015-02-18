@@ -9,7 +9,7 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 9
+%define taglevel 10
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -113,6 +113,9 @@ fi
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Wed Feb 18 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-10
+- fixed taglevel in specfile
+
 * Tue Jul 22 2014 Thomas Dreibholz <dreibh@simula.no> - sliceimage-5.1-9
 - Post-install fix: exit instead of return
 - Post-install fix: only call init script when there are init scripts
