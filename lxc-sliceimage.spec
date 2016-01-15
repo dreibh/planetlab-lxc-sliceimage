@@ -48,19 +48,19 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/logrotate.d/lxc-sliceimage
 /vservers/.lvref
 
+# observed on a f23 node on jan-15-2016
+# it feels like this call to restarting the service does not trigger
+# or not reliably
+# the daily crontab job should save the day though
+# also just in case, we don't anymore disable the service when uninstalling either
 %post
 systemctl enable lxc-sliceimage.service
 if [ "$PL_BOOTCD" != "1" ] ; then
    systemctl restart lxc-sliceimage.service
 fi
 
-%preun
-# 0 = erase, 1 = upgrade
-if [ $1 -eq 0 ] ; then
-    systemctl disable lxc-sliceimage.service
-fi
-
 # Randomize daily run time
 M=$((60 * $RANDOM / 32768))
 H=$((24 * $RANDOM / 32768))
 sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/lxc-sliceimage
+
