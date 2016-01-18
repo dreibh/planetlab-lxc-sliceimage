@@ -59,8 +59,8 @@ if [ "$PL_BOOTCD" != "1" ] ; then
    systemctl restart lxc-sliceimage.service
 fi
 
-# Randomize daily run time
+# Randomize hourly run time (used to be daily)
+#H=$((24 * $RANDOM / 32768))
+#sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/lxc-sliceimage
 M=$((60 * $RANDOM / 32768))
-H=$((24 * $RANDOM / 32768))
-sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/lxc-sliceimage
-
+sed -i -e "s/@M@/$M/" %{_sysconfdir}/cron.d/lxc-sliceimage
