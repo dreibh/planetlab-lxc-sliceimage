@@ -53,4 +53,4 @@ chkconfig vserver-sliceimage on
 #H=$((24 * $RANDOM / 32768))
 #sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/lxc-sliceimage
 M=$((60 * $RANDOM / 32768))
-sed -i -e "s/@M@/$M/" %{_sysconfdir}/cron.d/lxc-sliceimage
+sed -i -e "s/@M@/$M/" %{_sysconfdir}/cron.d/vserver-sliceimage
