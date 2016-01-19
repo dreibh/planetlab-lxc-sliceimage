@@ -9,7 +9,7 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 10
+%define taglevel 11
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -113,6 +113,9 @@ fi
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Tue Jan 19 2016 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-11
+- make cronjob hourly instead of daily
+
 * Wed Feb 18 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-10
 - fixed taglevel in specfile
 
