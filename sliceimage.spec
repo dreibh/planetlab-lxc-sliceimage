@@ -23,6 +23,11 @@
 %define __os_install_post %{nil}
 %define debug_package %{nil}
 
+# this is needed as of f27 to prevent rpmbuild from inserting a huge
+# /usr/lib/.build-id area, that not only is not helping:
+# it comes in the way when creating the node image
+%global _build_id_links none
+
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab %{plrelease}
