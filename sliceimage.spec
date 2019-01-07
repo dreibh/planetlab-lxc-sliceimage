@@ -9,7 +9,7 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 11
+%define taglevel 12
 
 # pldistro already in the rpm name
 #%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
@@ -118,6 +118,9 @@ fi
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Mon Jan 07 2019 Thierry <Parmentelat> - sliceimage-5.1-12
+- fix for optimizing build on fedora27
+
 * Tue Jan 19 2016 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-11
 - make cronjob hourly instead of daily
 
