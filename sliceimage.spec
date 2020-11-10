@@ -42,7 +42,7 @@ License: GPL
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 # in 5.0, this package was named vserver-<>
-Obsoletes: vserver-%{slicefamily}
+# Obsoletes: vserver-{slicefamily}
 # this would not be right
 #BuildArch: noarch
 AutoReqProv: no
