@@ -1,7 +1,7 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 # historically there was one dummy 'sliceimage' package, and 
-# then 2 subpackages with %{slicefamily} and system-%{slicefamily}
+# then 2 subpackages with {slicefamily} and system-{slicefamily}
 # however the python spec2make that we need to use on f>=15 is dumb
 # it cannot detect it's an empty/dummy package, and thus includes it
 # in e.g. noderepo, which fails
@@ -12,7 +12,6 @@
 %define taglevel 12
 
 # pldistro already in the rpm name
-#%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %define release %{taglevel}%{?date:.%{date}}
 
 
