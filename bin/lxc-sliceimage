@@ -28,8 +28,7 @@ function check_node () {
 
 function start () {
 
-    echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-    echo "lxc-sliceimage: starting on $(date)"
+    echo "lxc-sliceimage: --- STARTING $(date) ---"
 
     check_node
     
@@ -62,8 +61,7 @@ function start () {
     # create ref images from stubs
     unfold_system_slices
 
-    echo "lxc-sliceimage: done on $(date)"
-    echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    echo "lxc-sliceimage: --- DONE $(date) ---"
 }
 
 function status () {
@@ -220,7 +218,7 @@ function unfold_system_slice_from_cloned () {
 # run with the --tty option to see results, otherwise get that logged
 case "$1" in
     --tty) shift;;
-    *) exec >> /var/log/lxc-sliceimage.log 2>&1 ;;
+    *) exec >> /var/log/lxc-sliceimage 2>&1 ;;
 esac
 
 case "$1" in

@@ -1,7 +1,7 @@
 %define slicefamily %{pldistro}-%{distroname}-%{_arch}
 
 # historically there was one dummy 'sliceimage' package, and 
-# then 2 subpackages with %{slicefamily} and system-%{slicefamily}
+# then 2 subpackages with {slicefamily} and system-{slicefamily}
 # however the python spec2make that we need to use on f>=15 is dumb
 # it cannot detect it's an empty/dummy package, and thus includes it
 # in e.g. noderepo, which fails
@@ -9,10 +9,9 @@
 
 %define name sliceimage
 %define version 5.1
-%define taglevel 7
+%define taglevel 12
 
 # pldistro already in the rpm name
-#%define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 %define release %{taglevel}%{?date:.%{date}}
 
 
@@ -22,6 +21,11 @@
 # through this post install processing. - baris
 %define __os_install_post %{nil}
 %define debug_package %{nil}
+
+# this is needed as of f27 to prevent rpmbuild from inserting a huge
+# /usr/lib/.build-id area, that not only is not helping:
+# it comes in the way when creating the node image
+%global _build_id_links none
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -38,7 +42,7 @@ License: GPL
 Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 # in 5.0, this package was named vserver-<>
-Obsoletes: vserver-%{slicefamily}
+# Obsoletes: vserver-{slicefamily}
 # this would not be right
 #BuildArch: noarch
 AutoReqProv: no
@@ -88,21 +92,47 @@ rm -rf $RPM_BUILD_ROOT
 
 ### for upgrades
 %post
-[ "$PL_BOOTCD" = "1" ] && return
+if [ "$PL_BOOTCD" = "1" ] ; then
+   exit 0
+fi
 # remove explicit reference to vserver, find out all relevant scripts
-for initscript in /etc/init.d/*sliceimage*; do $initscript start ; done
+initScripts=`find /etc/init.d/ -name '*sliceimage*'`
+if [ "$initScripts" != "" ] ; then
+   for initscript in $initScripts ; do $initscript start ; done
+fi
 
 # need to do this for system slices, for when a new image shows up
 # we've already the service installed and enabled, as systemslices requires the plain package
 %post -n sliceimage-system-%{slicefamily}
-[ "$PL_BOOTCD" = "1" ] && return
+if [ "$PL_BOOTCD" = "1" ] ; then
+   exit 0
+fi
 # remove explicit reference to vserver, find out all relevant scripts
-for initscript in /etc/init.d/*sliceimage*; do $initscript force ; done
+initScripts=`find /etc/init.d/ -name '*sliceimage*'`
+if [ "$initScripts" != "" ] ; then
+   for initscript in $initScripts ; do $initscript force ; done
+fi
 
 
 #%define vcached_pid /var/run/vcached.pid
 
 %changelog
+* Mon Jan 07 2019 Thierry <Parmentelat> - sliceimage-5.1-12
+- fix for optimizing build on fedora27
+
+* Tue Jan 19 2016 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-11
+- make cronjob hourly instead of daily
+
+* Wed Feb 18 2015 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-10
+- fixed taglevel in specfile
+
+* Tue Jul 22 2014 Thomas Dreibholz <dreibh@simula.no> - sliceimage-5.1-9
+- Post-install fix: exit instead of return
+- Post-install fix: only call init script when there are init scripts
+
+* Wed Jul 16 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-8
+- use systemd unit files to initialize lxc-sliceimage instead of a sysv script
+
 * Mon Apr 28 2014 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - sliceimage-5.1-7
 - can build pips and gems in sliceimage (currently only gem used in omf)
 - requires a recent build/pkgs.py if pkgs file does mention pip or gem

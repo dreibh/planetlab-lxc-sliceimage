@@ -1,6 +1,6 @@
 %define name vserver-sliceimage
 %define version 5.1
-%define taglevel 7
+%define taglevel 12
 
 %define release %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
@@ -48,7 +48,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 chkconfig --add vserver-sliceimage
 chkconfig vserver-sliceimage on
-# Randomize daily run time
+
+# Randomize hourly run time (used to be daily)
+#H=$((24 * $RANDOM / 32768))
+#sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/lxc-sliceimage
 M=$((60 * $RANDOM / 32768))
-H=$((24 * $RANDOM / 32768))
-sed -i -e "s/@M@/$M/" -e "s/@H@/$H/" %{_sysconfdir}/cron.d/vserver-sliceimage
+sed -i -e "s/@M@/$M/" %{_sysconfdir}/cron.d/vserver-sliceimage

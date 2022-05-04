@@ -40,7 +40,7 @@ exec 4>&2
 exec >>/var/log/vserver-sliceimage
 exec 2>&1
 
-echo "--- STARTING $(date) ---"  >&3 2>&4
+echo "vserver-sliceimage: --- STARTING $(date) ---"
 
 # Parse PLC configuration
 if [ -r /etc/planetlab/plc_config ] ; then
@@ -94,7 +94,7 @@ for clonedstamp in "$__DEFAULT_VSERVERDIR/.vstub/"*/*.cloned ; do
     [ -n "$FORCE" ] && message=Force-building
     
     # Copy base reference image
-    echo -n $"$message slice image for $NAME in $VREFNAME: " >&3 2>&4
+    echo -n $"$message slice image for $NAME in $VREFNAME: "
 
     # Build in temporary directory
     mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
@@ -190,7 +190,7 @@ for cacert in $CACERT ; do
 done
 
 success >&3 2>&4
-echo "--- DONE $(date) ---"  >&3 2>&4
+echo "vserver-sliceimage: --- DONE $(date) ---"
 echo >&3 2>&4
 
 exit 0
